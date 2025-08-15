@@ -51,3 +51,23 @@ exports.adminLogin = async (req, res) => {
         return RESPONSE.error(res, 500, 9999, err.message);
     }
 };
+
+// update api
+exports.updateAdmin = async (req, res) => {
+    try {
+        console.log('req.body', req.body.username);
+        const { username, password } = req.body;
+        const admin = await db.Admin.findOne({ _id: req.admin.id });
+
+        if (username) admin.username = username;
+        if (req.file) admin.image = req.file.path;
+        if (password) admin.password = await bcrypt.hash(password, 10);
+
+        await admin.save();
+
+        return RESPONSE.success(res, 200, 1007, { admin });
+    } catch (err) {
+        console.log('err', err);
+        return RESPONSE.error(res, 500, 9999, err.message);
+    }
+};
