@@ -37,11 +37,11 @@ const userController = require('../../controllers/user.controller.js');
  *                 description: Mobile number of the user (must be unique)
  *               branchId:
  *                 type: string
- *                 example: "64dc9f07a12b3f001e5c9d1a"
+ *                 example: "689edec7c67887dc81f51934"
  *                 description: ID of the branch where the user is registered
  *               planId:
  *                 type: string
- *                 example: "64dc9f07a12b3f001e5c9d1b"
+ *                 example: "689f0dde31d1fabdda2d4ac1"
  *                 description: ID of the plan assigned to the user
  *     responses:
  *       201:

@@ -6,27 +6,58 @@ const userController = require('../../controllers/user.controller.js');
  * @swagger
  * /auth/user/login:
  *   post:
- *     summary: User login (email or quick)
+ *     summary: Login user with mobile number
  *     tags:
- *       - Auth
+ *       - User
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - mobileNumber
  *             properties:
- *               email:
+ *               mobileNumber:
  *                 type: string
- *               identity:
+ *                 example: "9876543210"
+ *                 description: Registered mobile number of the user
+ *               fcmToken:
  *                 type: string
- *               loginType:
- *                 type: string
- *                 enum: [email, quick]
+ *                 example: "fcm_token_example_here"
+ *                 description: Optional Firebase Cloud Messaging token for push notifications
  *     responses:
  *       200:
- *         description: Success
+ *         description: Login successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 200
+ *                 code:
+ *                   type: integer
+ *                   example: 1001
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     user:
+ *                       type: object
+ *                       description: User details
+ *                     OTP:
+ *                       type: string
+ *                       example: "1234"
+ *                     token:
+ *                       type: string
+ *                       example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ..."
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Server error
  */
+
 route.post('/login', userController.login);
 
 module.exports = route;

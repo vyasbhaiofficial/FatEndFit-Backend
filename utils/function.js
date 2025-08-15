@@ -12,5 +12,7 @@ exports.generatePatientId = async () => {
 };
 
 exports.generateOTP = async () => {
-    return Math.floor(1000 + Math.random() * 9000);
+    const number = Math.floor(1000 + Math.random() * 9000);
+    console.log('number', number);
+    return number;
 };

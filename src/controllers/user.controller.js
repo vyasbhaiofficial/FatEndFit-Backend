@@ -21,7 +21,8 @@ exports.login = async (req, res) => {
             process.env.JWT_SECRET, // use env secret
             { expiresIn: '7d' }
         );
-        return RESPONSE.success(res, 200, 1001, { user, OTP: generateOTP(), token });
+        const OTP = generateOTP();
+        return RESPONSE.success(res, 200, 1001, { user, OTP, token });
     } catch (err) {
         return RESPONSE.error(res, 500, 9999, err.message);
     }

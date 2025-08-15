@@ -54,7 +54,7 @@ const validationSchema = {
         }
     },
     // user login
-    '/user/login': {
+    '/auth/user/login': {
         schema: {
             mobileNumber: 'required|string',
             fcmToken: 'string'

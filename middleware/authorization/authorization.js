@@ -25,6 +25,8 @@ exports.user_auth = async (req, res, next) => {
         const token = authHeader.split(' ')[1];
         try {
             const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+            console.log('decoded', decoded);
             req.role = decoded.role;
             const allowedRoutes = roleRouteAccess[req.role] || [];
             const isAllowed = allowedRoutes.some(prefix => currentPath.startsWith(prefix));
