@@ -1,0 +1,16 @@
+const videoSchema = new mongoose.Schema(
+    {
+        title: { type: String, required: true },
+        video: { type: String, required: true },
+        description: { type: String, default: '' },
+        videoType: { type: Number, required: true, enum: [1, 2], default: 1 }, // 1 : video, 2 : link
+        thumbnail: { type: String, required: true },
+        thumbnailType: { type: Number, required: true, enum: [1, 2], default: 1 }, // 1 : image, 2 : link
+        day: { type: Number, required: true },
+        isDeleted: { type: Boolean, default: false },
+        videoSec: { type: Number, default: 0 },
+        videoSize: { type: Number, default: 0 }
+    },
+    { timestamps: true }
+);
+module.exports = mongoose.model('Video', videoSchema);

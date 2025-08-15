@@ -19,7 +19,7 @@ exports.createBranch = async (req, res) => {
             longitude
         });
 
-        return RESPONSE.success(res, 201, 4001, { branch });
+        return RESPONSE.success(res, 201, 4001, branch);
     } catch (err) {
         return RESPONSE.error(res, 500, 9999, err.message);
     }
@@ -28,7 +28,7 @@ exports.createBranch = async (req, res) => {
 exports.getAllBranches = async (req, res) => {
     try {
         const branches = await db.Branch.find({ isDeleted: false });
-        return RESPONSE.success(res, 200, 4002, { branches });
+        return RESPONSE.success(res, 200, 4002, branches);
     } catch (err) {
         return RESPONSE.error(res, 500, 9999, err.message);
     }
@@ -51,7 +51,7 @@ exports.updateBranch = async (req, res) => {
             return RESPONSE.error(res, 404, 4003);
         }
 
-        return RESPONSE.success(res, 200, 4005, { branch });
+        return RESPONSE.success(res, 200, 4005, branch);
     } catch (err) {
         return RESPONSE.error(res, 500, 9999, err.message);
     }
@@ -71,7 +71,7 @@ exports.deleteBranch = async (req, res) => {
             return RESPONSE.error(res, 404, 4003);
         }
 
-        return RESPONSE.success(res, 200, 4006, { branch });
+        return RESPONSE.success(res, 200, 4006);
     } catch (err) {
         return RESPONSE.error(res, 500, 9999, err.message);
     }

@@ -35,6 +35,14 @@ const MESSAGES = {
     6006: 'Plan deleted successfully',
     6007: 'Plan name already exists',
 
+    // video
+    7001: 'Video created successfully',
+    7002: 'Videos fetched successfully',
+    7003: 'Video not found',
+    7004: 'Video fetched successfully',
+    7005: 'Video updated successfully',
+    7006: 'Video deleted successfully',
+
     // api error
     9998: 'Access denied for this route',
     9999: 'Something went wrong !!'
