@@ -1,6 +1,7 @@
 const { db } = require('../models/index.model.js');
 const jwt = require('jsonwebtoken');
 const RESPONSE = require('../../utils/response.js');
+const { generateOTP, generatePatientId } = require('../../utils/function.js');
 
 exports.login = async (req, res) => {
     try {
@@ -20,7 +21,118 @@ exports.login = async (req, res) => {
             process.env.JWT_SECRET, // use env secret
             { expiresIn: '7d' }
         );
-        return RESPONSE.success(res, 200, 1001, { user, token });
+        return RESPONSE.success(res, 200, 1001, { user, OTP: generateOTP(), token });
+    } catch (err) {
+        return RESPONSE.error(res, 500, 9999, err.message);
+    }
+};
+
+// add user by admin
+exports.addUser = async (req, res) => {
+    try {
+        const { name, mobilePrefix, mobileNumber, branchId, planId } = req.body;
+
+        const [existingUser, branch, plan] = await Promise.all([
+            db.User.exists({ mobileNumber }),
+            db.Branch.exists({ _id: branchId }),
+            db.Plan.exists({ _id: planId })
+        ]);
+        if (existingUser) {
+            return RESPONSE.error(res, 400, 3002);
+        }
+        if (!branch || !plan) {
+            return RESPONSE.error(res, 404, 3003);
+        }
+
+        const user = await db.User.create({
+            name,
+            mobilePrefix,
+            mobileNumber,
+            branch: branchId,
+            plan: planId,
+            patientId: await generatePatientId()
+        });
+
+        return RESPONSE.success(res, 201, 1001, user);
+    } catch (err) {
+        console.log('err', err);
+        return RESPONSE.error(res, 500, 9999, err.message);
+    }
+};
+
+// update user by admin
+exports.updateUserByAdmin = async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const { name, mobilePrefix, mobileNumber, branchId, planId } = req.body;
+
+        const [existingUser, branch, plan, user] = await Promise.all([
+            db.User.exists({ mobileNumber, _id: { $ne: userId } }),
+            db.Branch.exists({ _id: branchId }),
+            db.Plan.exists({ _id: planId }),
+            db.User.findOne({ _id: userId })
+        ]);
+        if (existingUser) {
+            return RESPONSE.error(res, 400, 3002);
+        }
+        if (!branch || !plan) {
+            return RESPONSE.error(res, 404, 3003);
+        }
+        if (!user) {
+            return RESPONSE.error(res, 404, 3001);
+        }
+        if (name) user.name = name;
+        if (mobilePrefix) user.mobilePrefix = mobilePrefix;
+        if (mobileNumber) user.mobileNumber = mobileNumber;
+        if (branchId) user.branch = branchId;
+        if (planId) user.plan = planId;
+        await user.save();
+
+        return RESPONSE.success(res, 200, 1001, user);
+    } catch (err) {
+        return RESPONSE.error(res, 500, 9999, err.message);
+    }
+};
+
+// update user by user
+exports.updateUserByUser = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const {
+            name,
+            surname,
+            fcmToken,
+            gender,
+            age,
+            height,
+            weight,
+            language,
+            medicalDescription,
+            city,
+            state,
+            country
+        } = req.body;
+
+        const user = await db.User.findOne({ _id: userId });
+        if (!user) {
+            return RESPONSE.error(res, 404, 3001);
+        }
+        if (name) user.name = name;
+        if (fcmToken) user.fcmToken = fcmToken;
+        if (surname) user.surname = surname;
+        if (gender) user.gender = gender;
+        if (age) user.age = age;
+        if (height) user.height = height;
+        if (weight) user.weight = weight;
+        if (language) user.language = language;
+        if (medicalDescription) user.medicalDescription = medicalDescription;
+        if (city) user.city = city;
+        if (state) user.state = state;
+        if (country) user.country = country;
+        if (req.file) user.image = req.file.path;
+        await user.save();
+
+        return RESPONSE.success(res, 200, 1001, user);
     } catch (err) {
         return RESPONSE.error(res, 500, 9999, err.message);
     }
