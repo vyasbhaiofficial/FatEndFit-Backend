@@ -136,7 +136,7 @@ route.put('/update/:branchId', branchController.updateBranch);
 
 /**
  * @swagger
- * /admin/branch/delete/{branchId}:
+ * /admin/branch/{branchId}:
  *   delete:
  *     summary: Delete (soft delete) a branch
  *     tags: [Branch]
@@ -159,6 +159,6 @@ route.put('/update/:branchId', branchController.updateBranch);
  *         description: Server error
  */
 
-route.delete('/delete/:branchId', branchController.deleteBranch);
+route.delete('/:branchId', branchController.deleteBranch);
 
 module.exports = route;

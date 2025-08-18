@@ -16,7 +16,7 @@ exports.createPlan = async (req, res) => {
             days
         });
 
-        return RESPONSE.success(res, 201, 6001, { plan });
+        return RESPONSE.success(res, 201, 6001, plan);
     } catch (err) {
         return RESPONSE.error(res, 600, 9999, err.message);
     }
@@ -25,8 +25,12 @@ exports.createPlan = async (req, res) => {
 // Get All Plans
 exports.getAllPlans = async (req, res) => {
     try {
-        const plans = await db.Plan.find({ isDeleted: false });
-        return RESPONSE.success(res, 200, 6002, { plans });
+        const { role } = req;
+        const { start, limit } = req.query;
+        const options = pagination({ start, limit, role });
+
+        const plans = await db.Plan.find({ isDeleted: false }).skip(options.skip).limit(options.limit);
+        return RESPONSE.success(res, 200, 6002, plans);
     } catch (err) {
         return RESPONSE.error(res, 600, 9999, err.message);
     }
@@ -51,7 +55,7 @@ exports.updatePlan = async (req, res) => {
             return RESPONSE.error(res, 404, 6003);
         }
 
-        return RESPONSE.success(res, 200, 6005, { plan });
+        return RESPONSE.success(res, 200, 6005, plan);
     } catch (err) {
         return RESPONSE.error(res, 600, 9999, err.message);
     }
@@ -72,7 +76,7 @@ exports.deletePlan = async (req, res) => {
             return RESPONSE.error(res, 404, 6003);
         }
 
-        return RESPONSE.success(res, 200, 6006, { plan });
+        return RESPONSE.success(res, 200, 6006);
     } catch (err) {
         return RESPONSE.error(res, 600, 9999, err.message);
     }
