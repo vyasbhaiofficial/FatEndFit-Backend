@@ -72,4 +72,23 @@ const upload = require('../../../middleware/multer.js');
 
 route.put('/update', upload.single('image'), userController.updateUserByUser);
 
+// get user by user
+/**
+ * @swagger
+ * /user/get:
+ *   get:
+ *     summary: Get user profile (self)
+ *     tags: [User]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved user profile
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Server error
+ */
+route.get('/get', userController.getProfileByUser);
+
 module.exports = route;

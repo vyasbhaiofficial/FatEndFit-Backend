@@ -1,4 +1,5 @@
 const { db } = require('../src/models/index.model.js');
+const twilio = require('twilio');
 
 // Helper to generate 8-digit unique numeric ID
 exports.generatePatientId = async () => {
@@ -39,4 +40,23 @@ exports.pagination = async ({ start, limit, role }) => {
     }
 
     return options;
+};
+
+// Send OTP
+exports.sendOTP = async ({ OTP, mobileNumber }) => {
+    try {
+        // Save this OTP in DB/Redis with expiry (for verification later)
+        const client = new twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+        const message = await client.messages.create({
+            body: `Your OTP is ${OTP}`,
+            from: process.env.TWILIO_NUMBER, // Your Twilio Number
+            to: mobileNumber // User mobile number (+91 for India)
+        });
+
+        console.log('OTP sent:', message.sid);
+        return OTP; // return OTP to verify later
+    } catch (err) {
+        console.error('Error sending OTP:', err);
+        throw err;
+    }
 };

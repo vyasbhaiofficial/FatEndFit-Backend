@@ -1,7 +1,7 @@
 const { db } = require('../models/index.model.js');
 const jwt = require('jsonwebtoken');
 const RESPONSE = require('../../utils/response.js');
-const { generateOTP, generatePatientId } = require('../../utils/function.js');
+const { generateOTP, generatePatientId, sendOTP } = require('../../utils/function.js');
 
 exports.login = async (req, res) => {
     try {
@@ -21,7 +21,12 @@ exports.login = async (req, res) => {
             process.env.JWT_SECRET, // use env secret
             { expiresIn: '7d' }
         );
-        const OTP = generateOTP();
+
+        // const OTP = generateOTP();
+
+        const OTP = 1234;
+        // sendOTP({ OTP, mobileNumber }); // @todo
+
         return RESPONSE.success(res, 200, 1001, { user, OTP, token });
     } catch (err) {
         return RESPONSE.error(res, 500, 9999, err.message);
@@ -133,6 +138,20 @@ exports.updateUserByUser = async (req, res) => {
         if (req.file) user.image = req.file.path;
         await user.save();
 
+        return RESPONSE.success(res, 200, 1001, user);
+    } catch (err) {
+        return RESPONSE.error(res, 500, 9999, err.message);
+    }
+};
+
+// get profileby User
+exports.getProfileByUser = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const user = await db.User.findOne({ _id: userId });
+        if (!user) {
+            return RESPONSE.error(res, 404, 3001);
+        }
         return RESPONSE.success(res, 200, 1001, user);
     } catch (err) {
         return RESPONSE.error(res, 500, 9999, err.message);
