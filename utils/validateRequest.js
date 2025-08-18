@@ -22,7 +22,6 @@ const check_validation = async (req, res, next) => {
     if (validateSchemaData) {
         const { body, query } = req;
         const body_data = { ...body, ...query };
-        console.log('Validation body_data:', body_data);
 
         if (req.headers['content-type'] && req.headers['content-type'].includes('multipart/form-data')) {
             console.log('Skipping validation for multipart/form-data');

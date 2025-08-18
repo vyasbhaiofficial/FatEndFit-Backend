@@ -64,7 +64,6 @@ exports.updateAdmin = async (req, res) => {
         if (password) admin.password = await bcrypt.hash(password, 10);
 
         await admin.save();
-
         return RESPONSE.success(res, 200, 1007, { admin });
     } catch (err) {
         console.log('err', err);
