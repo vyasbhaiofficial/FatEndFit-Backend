@@ -4,6 +4,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node --max-old-space-size=32768 index.js",
     "start:dev": "nodemon --max-old-space-size=32768 index.js"
   },
   "repository": {
