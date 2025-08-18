@@ -49,16 +49,29 @@ route.post('/create', planController.createPlan);
  * @swagger
  * /admin/plan/all:
  *   get:
- *     summary: Get all active plans
+ *     summary: Get all plans
  *     tags: [Plan]
+ *     parameters:
+ *       - in: query
+ *         name: start
+ *         schema:
+ *           type: integer
+ *         required: false
+ *         description: Pagination start index
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *         required: false
+ *         description: Pagination limit
  *     security:
  *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: List of all plans
+ *         description: Successfully retrieved plans
  *       500:
  *         description: Server error
- */
+ * */
 route.get('/all', planController.getAllPlans);
 
 /**
@@ -104,7 +117,7 @@ route.put('/update/:planId', planController.updatePlan);
 
 /**
  * @swagger
- * /admin/plan/delete/{planId}:
+ * /admin/plan/{planId}:
  *   delete:
  *     summary: Soft delete a plan
  *     tags: [Plan]
@@ -126,6 +139,6 @@ route.put('/update/:planId', planController.updatePlan);
  *         description: Server error
  */
 
-route.delete('/delete/:planId', planController.deletePlan);
+route.delete('/:planId', planController.deletePlan);
 
 module.exports = route;

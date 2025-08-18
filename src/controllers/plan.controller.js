@@ -25,7 +25,11 @@ exports.createPlan = async (req, res) => {
 // Get All Plans
 exports.getAllPlans = async (req, res) => {
     try {
-        const plans = await db.Plan.find({ isDeleted: false });
+        const { role } = req;
+        const { start, limit } = req.query;
+        const options = pagination({ start, limit, role });
+
+        const plans = await db.Plan.find({ isDeleted: false }).skip(options.skip).limit(options.limit);
         return RESPONSE.success(res, 200, 6002, plans);
     } catch (err) {
         return RESPONSE.error(res, 600, 9999, err.message);

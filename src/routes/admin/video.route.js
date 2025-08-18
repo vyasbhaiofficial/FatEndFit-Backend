@@ -170,7 +170,7 @@ route.put('/update/:videoId', videoController.updateVideo);
 
 /**
  * @swagger
- * /admin/video/delete/{videoId}:
+ * /admin/video/{videoId}:
  *   delete:
  *     summary: Delete (soft delete) a video
  *     tags: [Video]
@@ -190,6 +190,6 @@ route.put('/update/:videoId', videoController.updateVideo);
  *       500:
  *         description: Server error
  */
-route.delete('/delete/:videoId', videoController.deleteVideo);
+route.delete('/:videoId', videoController.deleteVideo);
 
 module.exports = route;

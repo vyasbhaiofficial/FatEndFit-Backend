@@ -43,6 +43,28 @@ const MESSAGES = {
     7005: 'Video updated successfully',
     7006: 'Video deleted successfully',
 
+    // question
+    8001: 'Question created successfully',
+    8002: 'Questions fetched successfully',
+    8003: 'Question not found',
+    8004: 'Question fetched successfully',
+    8005: 'Question updated successfully',
+    8006: 'Question deleted successfully',
+
+    // userReport - answers
+    9001: 'User Report created successfully',
+    9002: 'User Report fetched successfully',
+    9003: 'User Report not found',
+    9004: 'User Report fetched successfully',
+    9005: 'User Report updated successfully',
+    9006: 'User Report deleted successfully',
+
+    // setting
+    1101: 'Setting created successfully',
+    1102: 'Setting fetched successfully',
+    1103: 'Setting not found',
+    1104: 'Setting updated successfully',
+
     // api error
     9998: 'Access denied for this route',
     9999: 'Something went wrong !!'
