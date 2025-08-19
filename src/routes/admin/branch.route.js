@@ -31,6 +31,7 @@ const branchController = require('../../controllers/branch.controller.js');
  *               - pincode
  *               - latitude
  *               - longitude
+ *               - mobileNumber
  *             properties:
  *               name:
  *                 type: string
@@ -47,6 +48,12 @@ const branchController = require('../../controllers/branch.controller.js');
  *               pincode:
  *                 type: string
  *                 example: 400001
+ *               mobilePrefix:
+ *                 type: string
+ *                 example: "+91"
+ *               mobileNumber:
+ *                 type: string
+ *                 example: "9876543210"
  *               latitude:
  *                 type: string
  *                 example: "19.0760"
@@ -117,6 +124,12 @@ route.get('/all', branchController.getAllBranches);
  *               pincode:
  *                 type: string
  *                 example: 411001
+ *               mobilePrefix:
+ *                 type: string
+ *                 example: "+91"
+ *               mobileNumber:
+ *                 type: string
+ *                 example: "9123456789"
  *               latitude:
  *                 type: string
  *                 example: "18.5204"

@@ -3,7 +3,9 @@ const twilio = require('twilio');
 
 // Helper to generate 8-digit unique numeric ID
 exports.generatePatientId = async () => {
-    let number = await db.User.findOne({}).sort({ patientId: -1 }).select('patientId');
+    let user = await db.User.findOne({}).sort({ patientId: -1 }).select('patientId');
+    let number = user?.patientId || 0;
+    console.log('number', number);
     if (!number) number = 1000;
     let exists = true;
     while (exists) {
@@ -18,9 +20,9 @@ exports.generateOTP = async () => {
     return number;
 };
 
-exports.pagination = async ({ start, limit, role }) => {
+exports.pagination = ({ start = 1, limit = 20, role }) => {
     let options = {};
-
+    console.log('role', role, start, limit);
     // If role is admin, allow page-wise pagination
     if (role == 'admin') {
         if (start && limit) {
@@ -32,13 +34,11 @@ exports.pagination = async ({ start, limit, role }) => {
     }
     // App side infinite scroll
     else {
-        if (skip && limit) {
-            // Infinite scroll uses start & limit directly
-            options.skip = parseInt(start);
-            options.limit = parseInt(limit);
-        }
+        // Infinite scroll uses start & limit directly
+        options.skip = parseInt(start);
+        options.limit = parseInt(limit);
     }
-
+    console.log('options', options);
     return options;
 };
 

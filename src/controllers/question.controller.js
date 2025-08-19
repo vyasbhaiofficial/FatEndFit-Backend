@@ -1,4 +1,5 @@
 const { db } = require('../models/index.model.js');
+const RESPONSE = require('../../utils/response.js');
 
 // Create Question
 exports.createQuestion = async (req, res) => {
