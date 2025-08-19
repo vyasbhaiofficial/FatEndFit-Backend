@@ -31,8 +31,8 @@ const questionController = require('../../controllers/question.controller.js');
  *                 type: string
  *                 example: "Is yoga good for stress relief?"
  *               correctAnswer:
- *                 type: boolean
- *                 example: true
+ *                 type: string
+ *                 example: Yes
  *     responses:
  *       201:
  *         description: Question created successfully

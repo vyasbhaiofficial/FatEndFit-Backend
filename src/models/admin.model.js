@@ -7,7 +7,7 @@ const adminSchema = new mongoose.Schema(
         password: { type: String, required: true },
         isDeleted: { type: Boolean, default: false },
         image: { type: String, default: `uploads/${process.env.DEFAULT_ADMIN_IMAGE}` },
-        adminType: { type: String, enum: ['Admin', 'Super Admin'], default: 'Super Admin' },
+        adminType: { type: String, enum: ['Admin', 'Sub Admin'], default: 'Sub Admin' },
         branch: {
             type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Branch' }],
             default: []
