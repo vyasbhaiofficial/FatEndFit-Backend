@@ -136,6 +136,7 @@ exports.updateUserByUser = async (req, res) => {
         if (state) user.state = state;
         if (country) user.country = country;
         if (req.file) user.image = req.file.path;
+        user.isProfileUpdated = true;
         await user.save();
 
         return RESPONSE.success(res, 200, 1001, user);

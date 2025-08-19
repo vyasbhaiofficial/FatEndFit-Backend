@@ -7,8 +7,7 @@ db.Plan = require('../models/plan.model.js');
 db.Video = require('../models/video.model.js');
 db.Question = require('../models/question.model.js');
 db.UserAnswer = require('../models/userAnswer.model.js');
-db.History =  require('../models/history.model.js')
-
+db.History = require('../models/history.model.js');
 db.UserVideoProgress = require('../models/userVideoProgress.model.js');
 
 module.exports = { db };
