@@ -3,9 +3,12 @@ const route = express.Router();
 const userRoute = require('./user.route.js');
 const userAnswerRoute = require('./userAnswer.route.js');
 const settingRoute = require('./setting.route.js');
+const questionRoute = require('./question.route.js')
 
 route.use('/userAnswer', userAnswerRoute);
 route.use('/setting', settingRoute);
+route.use('/question', questionRoute);
 route.use('/', userRoute);
+
 
 module.exports = route;

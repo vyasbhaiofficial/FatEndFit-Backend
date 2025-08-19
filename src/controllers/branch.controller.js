@@ -3,7 +3,7 @@ const RESPONSE = require('../../utils/response.js');
 
 exports.createBranch = async (req, res) => {
     try {
-        const { name, address, city, state, pincode, latitude, longitude } = req.body;
+        const { name, address, city, state, pincode, latitude, longitude, mobilePrefix, mobileNumber } = req.body;
 
         const existingBranch = await db.Branch.findOne({ name, isDeleted: false });
         if (existingBranch) {
@@ -16,7 +16,9 @@ exports.createBranch = async (req, res) => {
             state,
             pincode,
             latitude,
-            longitude
+            longitude,
+            mobilePrefix: mobilePrefix || '+91',
+            mobileNumber
         });
 
         return RESPONSE.success(res, 201, 4001, branch);
@@ -45,8 +47,14 @@ exports.updateBranch = async (req, res) => {
         if (existingBranch) {
             return RESPONSE.error(res, 400, 4007);
         }
-        const branch = await db.Branch.findOneAndUpdate({ _id: branchId, isDeleted: false }, req.body, { new: true });
-
+        const branch = await db.Branch.findOneAndUpdate(
+            { _id: branchId, isDeleted: false },
+            {
+                ...req.body,
+                mobilePrefix: req.body.mobilePrefix || '+91'
+            },
+            { new: true }
+        );
         if (!branch) {
             return RESPONSE.error(res, 404, 4003);
         }

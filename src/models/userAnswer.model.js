@@ -6,7 +6,7 @@ const userAnswerSchema = new mongoose.Schema({
     answers: [
         {
             questionId: { type: mongoose.Schema.Types.ObjectId, required: true },
-            answer: { type: Boolean, required: true }, // User's True/False choice
+            answer: { type: String, required: true }, // User's True/False choice
             isCorrect: { type: Boolean, required: true } // Auto-calc at submit
         }
     ],
