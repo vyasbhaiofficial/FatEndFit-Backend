@@ -36,6 +36,7 @@ const MESSAGES = {
     6005: 'Plan updated successfully',
     6006: 'Plan deleted successfully',
     6007: 'Plan name already exists',
+    6008: 'Plan already assign',
 
     // video
     7001: 'Video created successfully',

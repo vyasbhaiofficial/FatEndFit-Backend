@@ -141,4 +141,114 @@ route.put('/update/:planId', planController.updatePlan);
 
 route.delete('/:planId', planController.deletePlan);
 
+/**
+ * @swagger
+ * /admin/plan/plan-assign:
+ *   post:
+ *     summary: Assign a plan to a user
+ *     description: Assigns a subscription plan to a user. If the user already has a longer plan, a shorter plan cannot be assigned.
+ *     tags: [Plan]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - userId
+ *               - planId
+ *             properties:
+ *               userId:
+ *                 type: string
+ *                 example: "689f1b4ad152f478fe1e88ac"
+ *               planId:
+ *                 type: string
+ *                 example: "689f0dde31d1fabdda2d4ac1"
+ *     responses:
+ *       200:
+ *         description: Plan assigned successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "PLAN_ASSIGNED"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     message:
+ *                       type: string
+ *                       example: "30-day plan assigned successfully"
+ *       400:
+ *         description: Invalid request or assignment error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "PLAN_ASSIGN_ERROR"
+ *                 error:
+ *                   type: string
+ *                   example: "User already has 50-day plan. Cannot assign shorter 30-day plan."
+ *       401:
+ *         description: Unauthorized (No token provided or invalid token)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "User not Found"
+ *                 error:
+ *                   type: string
+ *                   example: "No token provided"
+ *       404:
+ *         description: User or Plan not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "USER_NOT_FOUND"
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "SERVER_ERROR"
+ *                 error:
+ *                   type: string
+ *                   example: "Something went wrong"
+ */
+
+route.post('/plan-assign', planController.planAssignToUser);
+
 module.exports = route;
