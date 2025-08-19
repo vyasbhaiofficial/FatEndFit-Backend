@@ -5,9 +5,13 @@ const userAnswerRoute = require('./userAnswer.route.js');
 const settingRoute = require('./setting.route.js');
 const questionRoute = require('./question.route.js')
 
+const userVideoProgressRoute = require('./userVideoProgress.route.js');
+const videoRoute = require('./video.route.js');
+
 route.use('/userAnswer', userAnswerRoute);
 route.use('/setting', settingRoute);
-route.use('/question', questionRoute);
+route.use('/videoProgress', userVideoProgressRoute);
+route.use('/video', videoRoute);
 route.use('/', userRoute);
 
 

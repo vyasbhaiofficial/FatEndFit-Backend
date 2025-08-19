@@ -2,8 +2,6 @@ const jwt = require('jsonwebtoken');
 const RESPONSE = require('../../utils/response.js');
 const { db } = require('../../src/models/index.model.js');
 
-const User = require('../../src/models/user.model.js');
-
 exports.user_auth = async (req, res, next) => {
     try {
         const exclude_employee_auth_routes = ['/auth'];
@@ -26,8 +24,8 @@ exports.user_auth = async (req, res, next) => {
         try {
             const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-            console.log('decoded', decoded);
             req.role = decoded.role;
+            console.log('decode', decoded);
             const allowedRoutes = roleRouteAccess[req.role] || [];
             const isAllowed = allowedRoutes.some(prefix => currentPath.startsWith(prefix));
 
@@ -38,9 +36,9 @@ exports.user_auth = async (req, res, next) => {
             if (decoded.role == 'user') {
                 const user = await db.User.findById(decoded.id);
                 if (!user || user.isDeleted) {
-                    return RESPONSE.error(res, 500, 3002, null);
+                    return RESPONSE.error(res, 500, 3001, null);
                 } else if (user.isBlocked) {
-                    return RESPONSE.error(res, 500, 3003, null);
+                    return RESPONSE.error(res, 500, 3004, null);
                 }
                 req.user = decoded;
                 req.user.isHost = user.isHost;
@@ -48,12 +46,12 @@ exports.user_auth = async (req, res, next) => {
             } else if (decoded.role == 'admin') {
                 const admin = await db.Admin.findById(decoded.id);
                 if (!admin) {
-                    return RESPONSE.error(res, 500, 3002, null);
+                    return RESPONSE.error(res, 500, 2003, null);
                 }
                 req.admin = decoded;
                 next();
             } else {
-                return RESPONSE.error(res, 500, 3003, null); // @todo
+                return RESPONSE.error(res, 500, 2002, null); // @todo
             }
         } catch (err) {
             console.log('------------Error verifying token:', err);

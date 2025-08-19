@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const { db } = require('../models/index.model.js');
 const RESPONSE = require('../../utils/response.js');
 const { getVideoDurationInSeconds } = require('get-video-duration');
@@ -6,19 +7,18 @@ const { pagination } = require('../../utils/function.js');
 // Create Video
 exports.createVideo = async (req, res) => {
     try {
-        const { title, video, videoType, thumbnail, thumbnailType, description, day } = req.body;
+        const { title, video, videoType, thumbnail, thumbnailType, description, day, videoSecond } = req.body;
 
         // thumbnailType == 2 && (thumbnail = req.body.thumbnail)
         // thumbnailType == 1 && (thumbnail = req.file.path);
 
         // File size in bytes
-        const videoSize = req.file.size; // bytes
+        const videoSize = req.files?.video[0].size; // bytes
         const videoSizeMB = (videoSize / (1024 * 1024)).toFixed(2); // MB
-
         // Duration in seconds
-        const videoSec = await getVideoDurationInSeconds(req.file.path);
+        const videoSec = await getVideoDurationInSeconds(req.files?.video[0].path);
 
-        const imageFile = req.files?.image?.[0]?.path || undefined;
+        const imageFile = req.files?.thumbnail?.[0]?.path || undefined;
         const videoFile = req.files?.video?.[0]?.path || undefined;
 
         const newVideo = await db.Video.create({
@@ -29,7 +29,7 @@ exports.createVideo = async (req, res) => {
             thumbnailType,
             description,
             day,
-            videoSec,
+            videoSec: videoType == 2 ? Number(videoSecond) : Math.round(videoSec),
             videoSize: videoSizeMB
         });
 
@@ -43,7 +43,7 @@ exports.createVideo = async (req, res) => {
 exports.getAllVideos = async (req, res) => {
     try {
         const role = req.role;
-        const { day, start, limit } = req.query;
+        const { day, start = 1, limit = 20 } = req.query;
 
         const options = pagination({ start, limit, role });
         const videos = await db.Video.find({ isDeleted: false, ...(day && { day }) })
@@ -77,7 +77,7 @@ exports.getVideoById = async (req, res) => {
 exports.updateVideo = async (req, res) => {
     try {
         const videoId = req.params.id;
-        const { title, video, videoType, thumbnail, thumbnailType, description, day } = req.body;
+        const { title, video, videoType, thumbnail, thumbnailType, description, day, videoSecond } = req.body;
 
         // Find existing video
         const existingVideo = await db.Video.findById(videoId);
@@ -97,6 +97,7 @@ exports.updateVideo = async (req, res) => {
         let videoFile = req.files?.video?.[0]?.path;
         if (videoType == 2) {
             updatedData.video = video ?? existingVideo.video; // URL from body
+            updatedData.videoSec = Number(videoSecond) ?? existingVideo.videoSec;
         } else if (videoFile) {
             updatedData.video = videoFile;
 
@@ -139,6 +140,76 @@ exports.deleteVideo = async (req, res) => {
         }
 
         return RESPONSE.success(res, 200, 7006);
+    } catch (err) {
+        return RESPONSE.error(res, 500, 9999, err.message);
+    }
+};
+
+// Get All Videos
+exports.getAllVideosByUser = async (req, res) => {
+    try {
+        const role = req.role;
+        const { day, start = 0, limit = 20 } = req.query;
+        const userId = req.user.id;
+        const options = pagination({ start, limit, role });
+        // here i also want to use userVideoProgress to get the videos that the user has watched by aggregation and add field to videos array
+
+        const videos11 = await db.Video.find({ isDeleted: false, ...(day && { day }) })
+            .sort({ createdAt: -1 })
+            .skip(options.skip)
+            .limit(options.limit);
+        console.log('userId', userId);
+        const videos = await db.Video.aggregate([
+            { $match: { isDeleted: false, ...(day && { day: Number(day) }) } },
+            { $sort: { createdAt: -1 } },
+            { $skip: options.skip },
+            { $limit: options.limit },
+            {
+                $lookup: {
+                    from: 'uservideoprogresses', // ✅ correct collection name
+                    let: { videoId: '$_id' },
+                    pipeline: [
+                        {
+                            $match: {
+                                $expr: {
+                                    $and: [
+                                        { $eq: ['$videoId', '$$videoId'] },
+                                        { $eq: ['$userId', new mongoose.Types.ObjectId(userId)] }
+                                    ]
+                                }
+                            }
+                        },
+                        { $project: { watchedSeconds: 1, lastWatchedAt: 1, isCompleted: 1, _id: 0 } }
+                    ],
+                    as: 'userVideoProgress'
+                }
+            },
+            { $unwind: { path: '$userVideoProgress', preserveNullAndEmptyArrays: true } }, // ✅ flatten
+            // lookup on userAnswer table
+            {
+                $lookup: {
+                    from: 'useranswers',
+                    let: { videoId: '$_id' },
+                    pipeline: [
+                        {
+                            $match: {
+                                $expr: {
+                                    $and: [
+                                        { $eq: ['$videoId', '$$videoId'] },
+                                        { $eq: ['$userId', new mongoose.Types.ObjectId(userId)] }
+                                    ]
+                                }
+                            }
+                        },
+                        { $project: { _id: 0 } }
+                    ],
+                    as: 'userAnswer'
+                }
+            },
+            { $unwind: { path: '$userAnswer', preserveNullAndEmptyArrays: true } } // ✅ flatten
+        ]);
+
+        return RESPONSE.success(res, 200, 7002, { videos, videos11 });
     } catch (err) {
         return RESPONSE.error(res, 500, 9999, err.message);
     }
