@@ -1,6 +1,7 @@
 const express = require('express');
 const route = express.Router();
 const videoController = require('../../controllers/video.controller.js');
+const upload = require('../../../middleware/multer.js');
 
 /**
  * @swagger
@@ -36,6 +37,9 @@ const videoController = require('../../controllers/video.controller.js');
  *                 type: string
  *                 format: binary
  *                 description: Required if videoType = 1
+ *               videoSecond:
+ *                 type: number
+ *                 description: Required if videoType = 2
  *               language:
  *                 type: string
  *                 example: "English"
@@ -60,7 +64,14 @@ const videoController = require('../../controllers/video.controller.js');
  *       500:
  *         description: Server error
  */
-route.post('/create', videoController.createVideo);
+route.post(
+    '/create',
+    upload.fields([
+        { name: 'video', maxCount: 1 },
+        { name: 'thumbnail', maxCount: 1 }
+    ]),
+    videoController.createVideo
+);
 
 /**
  * @swagger
@@ -148,6 +159,9 @@ route.get('/byId/:videoId', videoController.getVideoById);
  *               video:
  *                 type: string
  *                 format: binary
+ *               videoSecond:
+ *                 type: number
+ *                 description: Required if videoType = 2
  *               thumbnailType:
  *                 type: integer
  *                 enum: [1, 2]

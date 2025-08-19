@@ -5,11 +5,13 @@ const MESSAGES = {
     // Login
     2001: 'Login successfully',
     2002: 'Invalid token',
+    2003: 'Admin Does Not Found',
 
     // user
     3001: 'User not Found',
     3002: 'User already exists',
     3003: 'Branch or plan not found',
+    3004: 'User is Blocked',
 
     // branch
     4001: 'Branch created successfully',
@@ -65,9 +67,14 @@ const MESSAGES = {
     1103: 'Setting not found',
     1104: 'Setting updated successfully',
 
+    // userVideoProgress
+    1201: 'Progress updated successfully',
+    1202 : 'Invalid video time',
+
     // api error
     9998: 'Access denied for this route',
-    9999: 'Something went wrong !!'
+    9999: 'Something went wrong !!',
+    4444: 'Access denied for this route'
 };
 
 const get_message = message_code => {
