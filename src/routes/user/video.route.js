@@ -6,8 +6,8 @@ const videoController = require('../../controllers/video.controller.js');
 /**
  * @swagger
  * tags:
- *   name: video
- *   description: video management APIs
+ *   name: Video
+ *   description: Video management APIs
  */
 
 /**
