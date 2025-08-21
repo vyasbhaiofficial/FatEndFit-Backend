@@ -251,3 +251,20 @@ exports.getFirstPageDayWiseProgress = async (req, res) => {
         return RESPONSE.error(res, 500, 9999, err.message);
     }
 };
+
+// update fcm token
+exports.updateFcmToken = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { fcmToken } = req.body;
+        const user = await db.User.findById(userId);
+        if (!user) {
+            return RESPONSE.error(res, 404, 3001);
+        }
+        user.fcmToken = fcmToken;
+        await user.save();
+        return RESPONSE.success(res, 200, 1001, user);
+    } catch (err) {
+        return RESPONSE.error(res, 500, 9999, err.message);
+    }
+};

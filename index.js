@@ -33,10 +33,12 @@ const { db } = require('./src/models/index.model.js');
 // @todo check this will work right way or not
 cron.schedule('0 0 * * *', async () => {
     // ✅ This runs once per day at 00:00 (midnight)
+    console.log('Running cron job...');
+
     const now = new Date();
     const date = now.toISOString().split('T')[0];
     try {
-        const users = await db.User.find({ isDeleted: false, planHoldDate: { $ne: null } }).populate('plan');
+        const users = await db.User.find({ isDeleted: false, planHoldDate: { $eq: null } }).populate('plan');
         for (const user of users) {
             const planDay = user.plan.days;
             const nextDay = user.planCurrentDay + 1;
