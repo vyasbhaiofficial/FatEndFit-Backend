@@ -37,6 +37,7 @@ const MESSAGES = {
     6006: 'Plan deleted successfully',
     6007: 'Plan name already exists',
     6008: 'Plan already assign',
+    6009: 'User cannot excess this plan',
 
     // video
     7001: 'Video created successfully',
@@ -71,7 +72,7 @@ const MESSAGES = {
 
     // userVideoProgress
     1201: 'Progress updated successfully',
-    1202 : 'Invalid video time',
+    1202: 'Invalid video time',
 
     // api error
     9998: 'Access denied for this route',
