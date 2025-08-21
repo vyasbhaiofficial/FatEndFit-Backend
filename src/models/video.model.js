@@ -11,7 +11,8 @@ const videoSchema = new mongoose.Schema(
         day: { type: Number, required: true }, // 0 , 1, 2 // day wise videoes multiple
         isDeleted: { type: Boolean, default: false },
         videoSec: { type: Number, default: 0 },
-        videoSize: { type: Number, default: 0 }
+        videoSize: { type: Number, default: 0 },
+        type: { type: Number, required: true, enum: [1, 2], default: 1 } // 1 : video day wise , 2 : webinar in live section
     },
     { timestamps: true }
 );

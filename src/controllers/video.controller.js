@@ -7,10 +7,11 @@ const { pagination } = require('../../utils/function.js');
 // Create Video
 exports.createVideo = async (req, res) => {
     try {
-        const { title, video, videoType, thumbnail, thumbnailType, description, day, videoSecond } = req.body;
+        const { title, video, videoType, thumbnail, thumbnailType, description, day, videoSecond, type } = req.body;
 
         // thumbnailType == 2 && (thumbnail = req.body.thumbnail)
         // thumbnailType == 1 && (thumbnail = req.file.path);
+        // type == 1 , 2 if type 1 then day required
 
         // File size in bytes
         const videoSize = req.files?.video[0].size; // bytes
@@ -28,7 +29,8 @@ exports.createVideo = async (req, res) => {
             thumbnail: thumbnailType == 2 ? thumbnail : imageFile,
             thumbnailType,
             description,
-            day,
+            day: day ? day : null,
+            type,
             videoSec: videoType == 2 ? Number(videoSecond) : Math.round(videoSec),
             videoSize: videoSizeMB
         });

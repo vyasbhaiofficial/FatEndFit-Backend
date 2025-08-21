@@ -8,8 +8,12 @@ exports.submitAnswers = async (req, res) => {
         const userId = req.user.id; // From auth middleware
 
         //  Check if video exists
-        const video = await db.Video.findById(videoId);
+        const [video, userAnswer] = await Promise.all([
+            db.Video.findById(videoId),
+            db.UserAnswer.exists({ video: videoId, user: userId })
+        ]);
         if (!video) return RESPONSE.error(res, 404, 7003);
+        if (userAnswer) return RESPONSE.error(res, 400, 9007);
 
         let correctCount = 0;
 
@@ -38,7 +42,6 @@ exports.submitAnswers = async (req, res) => {
                 };
             })
         );
-        console.log(checkedAnswers, '--------------------');
 
         //  Save user’s attempt
         const report = await db.UserAnswer.create({
