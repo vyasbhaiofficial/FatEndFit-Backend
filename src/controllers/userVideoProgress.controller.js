@@ -18,7 +18,8 @@ exports.updateProgress = async (req, res) => {
                 userId,
                 videoId,
                 watchedSeconds: currentTime,
-                lastWatchedAt: currentTime
+                lastWatchedAt: currentTime,
+                videoSec: videoDuration.videoSec
             });
         } else {
             // Only increase watchedSeconds if moving forward

@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const { db } = require('../models/index.model.js');
 const jwt = require('jsonwebtoken');
 const RESPONSE = require('../../utils/response.js');
@@ -154,6 +155,98 @@ exports.getProfileByUser = async (req, res) => {
             return RESPONSE.error(res, 404, 3001);
         }
         return RESPONSE.success(res, 200, 1001, user);
+    } catch (err) {
+        return RESPONSE.error(res, 500, 9999, err.message);
+    }
+};
+
+// get first page day by progress
+exports.getFirstPageDayWiseProgress = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const user = await db.User.findOne({ _id: userId }).select('planCurrentDay');
+        const maxDay = parseInt(user.planCurrentDay);
+
+        const progress = await db.Video.aggregate([
+            {
+                $match: {
+                    isDeleted: false,
+                    day: { $lte: maxDay }
+                }
+            },
+            {
+                $lookup: {
+                    from: 'uservideoprogresses', // 👈 collection name (check in Mongo)
+                    let: { videoId: '$_id' },
+                    pipeline: [
+                        {
+                            $match: {
+                                $expr: {
+                                    $and: [
+                                        { $eq: ['$videoId', '$$videoId'] },
+                                        { $eq: ['$userId', new mongoose.Types.ObjectId(userId)] }
+                                    ]
+                                }
+                            }
+                        }
+                    ],
+                    as: 'progress'
+                }
+            },
+            {
+                $addFields: {
+                    watchedSeconds: { $ifNull: [{ $arrayElemAt: ['$progress.watchedSeconds', 0] }, 0] },
+                    progressPercent: {
+                        $cond: [
+                            { $gt: ['$videoSec', 0] },
+                            {
+                                $round: [
+                                    {
+                                        $multiply: [
+                                            {
+                                                $divide: [
+                                                    { $ifNull: [{ $arrayElemAt: ['$progress.watchedSeconds', 0] }, 0] },
+                                                    '$videoSec'
+                                                ]
+                                            },
+                                            100
+                                        ]
+                                    },
+                                    0
+                                ]
+                            },
+                            0
+                        ]
+                    }
+                }
+            },
+            {
+                $group: {
+                    _id: '$day',
+                    firstThumbnail: { $first: '$thumbnail' },
+                    totalVideoSec: { $sum: '$videoSec' },
+                    totalWatched: { $sum: '$watchedSeconds' }
+                }
+            },
+            {
+                $addFields: {
+                    dayProgressPercent: {
+                        $cond: [
+                            { $gt: ['$totalVideoSec', 0] },
+                            { $round: [{ $multiply: [{ $divide: ['$totalWatched', '$totalVideoSec'] }, 100] }, 0] },
+                            0
+                        ]
+                    }
+                }
+            },
+            { $sort: { _id: -1 } }, // latest day first
+            { $project: { day: '$_id', _id: 0, firstThumbnail: 1, dayProgressPercent: 1 } }
+        ]);
+
+        return RESPONSE.success(res, 200, 1001, {
+            progress,
+            isHold: user.planHoldDate ? true : false
+        });
     } catch (err) {
         return RESPONSE.error(res, 500, 9999, err.message);
     }

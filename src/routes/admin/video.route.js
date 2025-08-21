@@ -55,9 +55,15 @@ const upload = require('../../../middleware/multer.js');
  *               description:
  *                 type: string
  *                 example: "A 20-minute yoga routine for beginners."
+ *               type:
+ *                 type: integer
+ *                 enum: [1, 2]
+ *                 example: 1
+ *                 description: 1 = video day wise , 2 = webinar in live section
  *               day:
  *                 type: integer
  *                 example: 1
+ *                 description: Required if videoType = 1
  *     responses:
  *       201:
  *         description: Video created successfully

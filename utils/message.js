@@ -61,6 +61,7 @@ const MESSAGES = {
     9004: 'User Report fetched successfully',
     9005: 'User Report updated successfully',
     9006: 'User Report deleted successfully',
+    9007: 'User Report already exists',
 
     // setting
     1101: 'Setting created successfully',
