@@ -4,10 +4,12 @@ const questionController = require('../../controllers/question.controller.js');
 
 /**
  * @swagger
- * /admin/question/get:
+ * /user/question/get:
  *   get:
  *     summary: Get all questions by videoId
  *     tags: [Question]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: query
  *         name: videoId

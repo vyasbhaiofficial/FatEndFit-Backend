@@ -6,6 +6,7 @@ const userVideoProgressSchema = new mongoose.Schema(
         videoId: { type: mongoose.Schema.Types.ObjectId, ref: 'Video', required: true },
         watchedSeconds: { type: Number, default: 0 }, // how many seconds total watched
         lastWatchedAt: { type: Number, default: 0 }, // last second position in video
+        videoSec: { type: Number, default: 0 },
         isCompleted: { type: Boolean, default: false }
     },
     { timestamps: true }
