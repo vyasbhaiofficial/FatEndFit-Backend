@@ -178,3 +178,42 @@ exports.planAssignToUser = async (req, res) => {
         return RESPONSE.error(res, 500, 'SERVER_ERROR', err.message);
     }
 };
+
+// plan hold or resume by the user
+exports.planHoldOrResume = async (req, res) => {
+    try {
+        const { planId } = req.query; // type = 1 -> hold , type = 2 -> resume
+        let type = Number(req.query.type);
+        const userId = req.user.id;
+
+        //  Check if plan exists
+        const plan = await db.Plan.findById(planId);
+        if (!plan || plan.isDeleted) {
+            return RESPONSE.error(res, 404, 6003);
+        }
+        const user = await db.User.findById(userId);
+        if (user.plan.toString() !== planId) {
+            return RESPONSE.error(res, 404, 6009);
+        }
+        const now = new Date();
+        const date = now.toISOString().split('T')[0];
+        if (type == 1) {
+            // hold
+            user.planHoldDate = date;
+            user.planResumeDate = null;
+        } else {
+            // resume
+            user.planHoldDate = null;
+            user.planResumeDate = date;
+            if (user.planCurrentDate !== date) {
+                user.planCurrentDate = date;
+                user.planCurrentDay += 1;
+            }
+        }
+        await user.save();
+        return RESPONSE.success(res, 200, type === 1 ? 'Plan hold successfully' : 'Plan resume successfully');
+    } catch (err) {
+        console.error(err);
+        return RESPONSE.error(res, 500, 9999, err.message);
+    }
+};

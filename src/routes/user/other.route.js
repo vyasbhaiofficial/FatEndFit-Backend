@@ -10,7 +10,7 @@ const upload = require('../../../middleware/multer.js');
  *   post:
  *     summary: Generate a URL for an uploaded image
  *     tags:
- *       - Common
+ *       - Other
  *     security:
  *       - bearerAuth: []
  *     requestBody:

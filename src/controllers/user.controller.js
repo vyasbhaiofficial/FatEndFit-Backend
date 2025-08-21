@@ -166,8 +166,7 @@ exports.getFirstPageDayWiseProgress = async (req, res) => {
         const userId = req.user.id;
         const user = await db.User.findOne({ _id: userId }).select('planCurrentDay');
         const maxDay = parseInt(user.planCurrentDay);
-
-        const progress = await db.Video.aggregate([
+        let videoProgress = await db.Video.aggregate([
             {
                 $match: {
                     isDeleted: false,
@@ -242,6 +241,19 @@ exports.getFirstPageDayWiseProgress = async (req, res) => {
             { $sort: { _id: -1 } }, // latest day first
             { $project: { day: '$_id', _id: 0, firstThumbnail: 1, dayProgressPercent: 1 } }
         ]);
+
+        // 2) Create full range of days [maxDay..1]
+        const fullDays = Array.from({ length: maxDay }, (_, i) => ({
+            day: maxDay - i,
+            firstThumbnail: null,
+            dayProgressPercent: 0
+        }));
+
+        // 3) Merge aggregation results into fullDays
+        const progress = fullDays.map(d => {
+            const found = videoProgress.find(p => p.day === d.day);
+            return found ? found : d;
+        });
 
         return RESPONSE.success(res, 200, 1001, {
             progress,
