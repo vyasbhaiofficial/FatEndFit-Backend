@@ -91,4 +91,22 @@ route.put('/update', upload.single('image'), userController.updateUserByUser);
  */
 route.get('/get', userController.getProfileByUser);
 
+// getFirstPageDayWiseProgress
+/**
+ * @swagger
+ * /user/getFirstPageDayWiseProgress:
+ *   get:
+ *     summary: Get first page - day wise progress
+ *     tags:
+ *       - User
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Success
+ *       500:
+ *         description: Server error
+ */
+
+route.get('/getFirstPageDayWiseProgress', userController.getFirstPageDayWiseProgress);
 module.exports = route;

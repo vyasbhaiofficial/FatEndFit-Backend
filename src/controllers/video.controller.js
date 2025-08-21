@@ -7,10 +7,11 @@ const { pagination } = require('../../utils/function.js');
 // Create Video
 exports.createVideo = async (req, res) => {
     try {
-        const { title, video, videoType, thumbnail, thumbnailType, description, day, videoSecond } = req.body;
+        const { title, video, videoType, thumbnail, thumbnailType, description, day, videoSecond, type } = req.body;
 
         // thumbnailType == 2 && (thumbnail = req.body.thumbnail)
         // thumbnailType == 1 && (thumbnail = req.file.path);
+        // type == 1 , 2 if type 1 then day required
 
         // File size in bytes
         const videoSize = req.files?.video[0].size; // bytes
@@ -28,7 +29,8 @@ exports.createVideo = async (req, res) => {
             thumbnail: thumbnailType == 2 ? thumbnail : imageFile,
             thumbnailType,
             description,
-            day,
+            day: day ? day : null,
+            type,
             videoSec: videoType == 2 ? Number(videoSecond) : Math.round(videoSec),
             videoSize: videoSizeMB
         });
@@ -152,13 +154,7 @@ exports.getAllVideosByUser = async (req, res) => {
         const { day, start = 0, limit = 20 } = req.query;
         const userId = req.user.id;
         const options = pagination({ start, limit, role });
-        // here i also want to use userVideoProgress to get the videos that the user has watched by aggregation and add field to videos array
 
-        const videos11 = await db.Video.find({ isDeleted: false, ...(day && { day }) })
-            .sort({ createdAt: -1 })
-            .skip(options.skip)
-            .limit(options.limit);
-        console.log('userId', userId);
         const videos = await db.Video.aggregate([
             { $match: { isDeleted: false, ...(day && { day: Number(day) }) } },
             { $sort: { createdAt: -1 } },
@@ -195,21 +191,31 @@ exports.getAllVideosByUser = async (req, res) => {
                             $match: {
                                 $expr: {
                                     $and: [
-                                        { $eq: ['$videoId', '$$videoId'] },
-                                        { $eq: ['$userId', new mongoose.Types.ObjectId(userId)] }
+                                        { $eq: ['$video', '$$videoId'] },
+                                        { $eq: ['$user', new mongoose.Types.ObjectId(userId)] }
                                     ]
                                 }
                             }
                         },
-                        { $project: { _id: 0 } }
+                        { $project: { _id: 1 } }
                     ],
                     as: 'userAnswer'
                 }
             },
-            { $unwind: { path: '$userAnswer', preserveNullAndEmptyArrays: true } } // ✅ flatten
+            {
+                $addFields: {
+                    userAnswer: {
+                        $cond: [
+                            { $eq: [{ $size: '$userAnswer' }, 0] }, // if no answers found
+                            false,
+                            true // → answered
+                        ]
+                    }
+                }
+            }
         ]);
 
-        return RESPONSE.success(res, 200, 7002, { videos, videos11 });
+        return RESPONSE.success(res, 200, 7002, videos);
     } catch (err) {
         return RESPONSE.error(res, 500, 9999, err.message);
     }

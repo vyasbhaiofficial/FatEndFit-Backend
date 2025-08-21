@@ -22,6 +22,7 @@ exports.createQuestion = async (req, res) => {
 exports.getAllQuestionsByVideoId = async (req, res) => {
     try {
         const { videoId, start, limit } = req.query;
+        const { role } = req;
         const options = pagination({ start, limit, role });
 
         const questions = await db.Question.find({ videoId })
