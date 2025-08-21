@@ -6,8 +6,8 @@ const videoController = require('../../controllers/video.controller.js');
 /**
  * @swagger
  * tags:
- *   name: video
- *   description: video management APIs
+ *   name: Video
+ *   description: Video management APIs
  */
 
 /**
@@ -25,7 +25,13 @@ const videoController = require('../../controllers/video.controller.js');
  *         schema:
  *           type: number
  *         required: false
- *         description: Filter videos by day
+ *         description: pass only if type = 1 to Filter videos by day
+ *       - in: query
+ *         name: type
+ *         schema:
+ *           type: number
+ *         required: true
+ *         description: type 1 video day wise 2 webinar in live section
  *       - in: query
  *         name: start
  *         schema:

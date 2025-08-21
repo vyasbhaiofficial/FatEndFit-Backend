@@ -109,4 +109,34 @@ route.get('/get', userController.getProfileByUser);
  */
 
 route.get('/getFirstPageDayWiseProgress', userController.getFirstPageDayWiseProgress);
+
+// updateFcmToken
+/**
+ * @swagger
+ * /user/updateFcmToken:
+ *   put:
+ *     summary: Update fcm token
+ *     tags: [User]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               fcmToken:
+ *                 type: string
+ *                 example: "d8f7s6d8f76sd8f7sd"
+ *     responses:
+ *       200:
+ *         description: FCM token updated successfully
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Server error
+ */
+route.put('/updateFcmToken', userController.updateFcmToken);
+
 module.exports = route;

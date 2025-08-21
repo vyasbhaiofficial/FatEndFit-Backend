@@ -29,7 +29,7 @@ exports.createVideo = async (req, res) => {
             thumbnail: thumbnailType == 2 ? thumbnail : imageFile,
             thumbnailType,
             description,
-            day: day ? day : null,
+            day: Number(type) == 1 ? day : null,
             type,
             videoSec: videoType == 2 ? Number(videoSecond) : Math.round(videoSec),
             videoSize: videoSizeMB
@@ -151,12 +151,11 @@ exports.deleteVideo = async (req, res) => {
 exports.getAllVideosByUser = async (req, res) => {
     try {
         const role = req.role;
-        const { day, start = 0, limit = 20 } = req.query;
+        const { day, start = 0, limit = 20, type = 1 } = req.query;
         const userId = req.user.id;
         const options = pagination({ start, limit, role });
-
         const videos = await db.Video.aggregate([
-            { $match: { isDeleted: false, ...(day && { day: Number(day) }) } },
+            { $match: { isDeleted: false, type: Number(type), ...(day && { day: Number(day) }) } },
             { $sort: { createdAt: -1 } },
             { $skip: options.skip },
             { $limit: options.limit },
@@ -180,7 +179,6 @@ exports.getAllVideosByUser = async (req, res) => {
                     as: 'userVideoProgress'
                 }
             },
-            { $unwind: { path: '$userVideoProgress', preserveNullAndEmptyArrays: true } }, // ✅ flatten
             // lookup on userAnswer table
             {
                 $lookup: {
@@ -209,6 +207,17 @@ exports.getAllVideosByUser = async (req, res) => {
                             { $eq: [{ $size: '$userAnswer' }, 0] }, // if no answers found
                             false,
                             true // → answered
+                        ]
+                    }
+                }
+            },
+            {
+                $addFields: {
+                    userVideoProgress: {
+                        $cond: [
+                            { $eq: [{ $size: '$userVideoProgress' }, 0] },
+                            { watchedSeconds: 0, lastWatchedAt: 0, isCompleted: false },
+                            { $first: '$userVideoProgress' }
                         ]
                     }
                 }
