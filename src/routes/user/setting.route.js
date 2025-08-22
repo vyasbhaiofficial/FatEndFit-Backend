@@ -16,6 +16,8 @@ const settingController = require('../../controllers/setting.controller.js');
  *   get:
  *     summary: Get setting
  *     tags: [Setting]
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: Successfully retrieved setting
