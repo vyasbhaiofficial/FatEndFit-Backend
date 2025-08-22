@@ -8,7 +8,7 @@ const userController = require('../../controllers/user.controller.js');
  *   post:
  *     summary: Login user with mobile number
  *     tags:
- *       - User
+ *       - Auth
  *     requestBody:
  *       required: true
  *       content:
