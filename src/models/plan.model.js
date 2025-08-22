@@ -7,7 +7,7 @@ const planSchema = new mongoose.Schema(
         days: { type: Number, required: true, default: 1 },
         isDeleted: { type: Boolean, default: false }
     },
-    { timestamps: true }
+    { timestamps: true, versionKey: false }
 );
 
 module.exports = mongoose.model('Plan', planSchema);

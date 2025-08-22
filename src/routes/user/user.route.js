@@ -32,8 +32,8 @@ const upload = require('../../../middleware/multer.js');
  *                 example: "d8f7s6d8f76sd8f7sd"
  *               gender:
  *                 type: string
- *                 enum: [male, female, other]
- *                 example: male
+ *                 enum: [Male, Female, Other]
+ *                 example: Male
  *               age:
  *                 type: integer
  *                 example: 28

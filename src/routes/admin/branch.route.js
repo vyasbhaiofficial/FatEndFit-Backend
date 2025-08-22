@@ -60,6 +60,9 @@ const branchController = require('../../controllers/branch.controller.js');
  *               longitude:
  *                 type: string
  *                 example: "72.8777"
+ *               email:
+ *                 type: string
+ *                 example: "n9yYQ@example.com"
  *     responses:
  *       201:
  *         description: Branch created successfully
@@ -136,6 +139,9 @@ route.get('/all', branchController.getAllBranches);
  *               longitude:
  *                 type: string
  *                 example: "73.8567"
+ *               email:
+ *                 type: string
+ *                 example: "n9yYQ@example.com"
  *     responses:
  *       200:
  *         description: Branch updated successfully

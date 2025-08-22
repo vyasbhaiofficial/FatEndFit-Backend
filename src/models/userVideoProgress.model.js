@@ -9,7 +9,7 @@ const userVideoProgressSchema = new mongoose.Schema(
         videoSec: { type: Number, default: 0 },
         isCompleted: { type: Boolean, default: false }
     },
-    { timestamps: true }
+    { timestamps: true, versionKey: false }
 );
 
 module.exports = mongoose.model('UserVideoProgress', userVideoProgressSchema);

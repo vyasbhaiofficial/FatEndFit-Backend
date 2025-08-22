@@ -1,7 +1,7 @@
 const { db } = require('../models/index.model.js');
 const RESPONSE = require('../../utils/response.js');
 
-// submit answers
+// submit answers // @todo
 exports.submitAnswers = async (req, res) => {
     try {
         const { videoId, answers } = req.body; // answers = [{ questionId, answer }]
@@ -52,6 +52,42 @@ exports.submitAnswers = async (req, res) => {
         });
 
         return RESPONSE.success(res, 200, 9001, report);
+    } catch (err) {
+        console.log(err, '---------------------');
+        return RESPONSE.error(res, 500, 9999, err.message);
+    }
+};
+
+exports.submitDailyReport = async (req, res) => {
+    try {
+        const { answers } = req.body; // answers = [{ questionId, answer }]
+        const { id: userId, planCurrentDay } = req.user; // From auth middleware
+
+        const userAnswer = await db.UserAnswer.findOne({ user: userId, day: planCurrentDay }).sort({ createdAt: -1 });
+
+        // here now i need direct save only question and answer no score and isCorrect save
+        const checkedAnswers = answers.map(a => {
+            return {
+                questionId: a.questionId,
+                answer: a.answer,
+                isCorrect: false
+            };
+        });
+
+        if (userAnswer) {
+            userAnswer.answers = checkedAnswers;
+            await userAnswer.save();
+        } else {
+            //  Save user’s attempt
+            userAnswer = await db.UserAnswer.create({
+                user: userId,
+                day: planCurrentDay,
+                answers: checkedAnswers,
+                score: 0
+            });
+        }
+
+        return RESPONSE.success(res, 200, 9001, userAnswer);
     } catch (err) {
         console.log(err, '---------------------');
         return RESPONSE.error(res, 500, 9999, err.message);

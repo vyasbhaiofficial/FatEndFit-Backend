@@ -11,7 +11,7 @@ const questionController = require('../../controllers/question.controller.js');
 
 /**
  * @swagger
- * /admin/question/create:
+ * /admin/question/createQuestionByVideoId:
  *   post:
  *     summary: Create a new question for a video
  *     tags: [Question]
@@ -39,8 +39,38 @@ const questionController = require('../../controllers/question.controller.js');
  *       500:
  *         description: Server error
  */
+route.post('/create-by-video', questionController.createQuestionByVideoId);
 
-route.post('/create', questionController.createQuestion);
+/**
+ * @swagger
+ * /admin/question/create-daily:
+ *   post:
+ *     summary: Create a daily question
+ *     description: Create a new daily question for users.
+ *     tags: [Question]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - questionText
+ *             properties:
+ *               questionText:
+ *                 type: string
+ *                 example: "Did you complete your daily task?"
+ *     responses:
+ *       201:
+ *         description: Question created successfully
+ *       401:
+ *         description: Unauthorized - Invalid or missing token
+ *       500:
+ *         description: Internal server error
+ */
+route.post('/create-daily', questionController.createQuestionDaily);
 
 /**
  * @swagger
@@ -55,28 +85,73 @@ route.post('/create', questionController.createQuestion);
  *         schema:
  *           type: string
  *         description: ID of the video
+ *       - in: query
+ *         name: start
+ *         schema:
+ *           type: integer
+ *         required: false
+ *         description: Pagination start index
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *         required: false
+ *         description: Pagination limit
  *     responses:
  *       200:
  *         description: List of questions
  *       500:
  *         description: Server error
  */
-route.get('/get', questionController.getAllQuestionsByVideoId);
+route.get('/get-by-video', questionController.getAllQuestionsByVideoId);
+
+/**
+ * @swagger
+ * /admin/question/get-daily:
+ *   get:
+ *     summary: Get all questions daily routine
+ *     tags: [Question]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: start
+ *         schema:
+ *           type: integer
+ *         example: 0
+ *         required: false
+ *         description: Pagination start index
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *         example: 10
+ *         required: false
+ *         description: Pagination limit
+ *     responses:
+ *       200:
+ *         description: List of questions
+ *       500:
+ *         description: Server error
+ */
+route.get('/get-daily', questionController.getAllQuestionsDailyRoutine);
 
 /**
  * @swagger
  * /admin/question/update/{questionId}:
  *   put:
  *     summary: Update a question
+ *     description: Update a question by ID. If the question type is 1, you can also update `correctAnswer` and `videoId`.
  *     tags: [Question]
  *     security:
  *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: questionId
- *         required: true
  *         schema:
  *           type: string
+ *         required: true
+ *         description: The ID of the question to update
  *     requestBody:
  *       required: true
  *       content:
@@ -86,17 +161,22 @@ route.get('/get', questionController.getAllQuestionsByVideoId);
  *             properties:
  *               questionText:
  *                 type: string
- *                 example: "Is yoga good for improving sleep?"
+ *                 example: "What is Node.js?"
  *               correctAnswer:
  *                 type: boolean
- *                 example: false
+ *                 example: true
+ *               videoId:
+ *                 type: string
+ *                 example: "64f1234567890abcdef12345"
  *     responses:
  *       200:
  *         description: Question updated successfully
+ *       401:
+ *         description: Unauthorized - Invalid or missing token
  *       404:
  *         description: Question not found
  *       500:
- *         description: Server error
+ *         description: Internal server error
  */
 route.put('/update/:questionId', questionController.updateQuestion);
 

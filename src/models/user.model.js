@@ -40,7 +40,7 @@ const userSchema = new mongoose.Schema(
         isBlocked: { type: Boolean, default: false },
         isProfileUpdated: { type: Boolean, default: false }
     },
-    { timestamps: true }
+    { timestamps: true, versionKey: false }
 );
 
 module.exports = mongoose.model('User', userSchema);
