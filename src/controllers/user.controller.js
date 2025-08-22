@@ -164,7 +164,7 @@ exports.getProfileByUser = async (req, res) => {
 exports.getFirstPageDayWiseProgress = async (req, res) => {
     try {
         const userId = req.user.id;
-        const user = await db.User.findOne({ _id: userId }).select('planCurrentDay');
+        const user = await db.User.findOne({ _id: userId }).select('planCurrentDay planHoldDate');
         const maxDay = parseInt(user.planCurrentDay);
         let videoProgress = await db.Video.aggregate([
             {
