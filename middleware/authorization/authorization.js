@@ -41,6 +41,7 @@ exports.user_auth = async (req, res, next) => {
                     return RESPONSE.error(res, 500, 3004, null);
                 }
                 req.user = decoded;
+                req.user.planCurrentDay = user.planCurrentDay;
                 next();
             } else if (decoded.role == 'admin') {
                 const admin = await db.Admin.findById(decoded.id);

@@ -6,7 +6,7 @@ const historySchema = new mongoose.Schema(
         plan: { type: mongoose.Schema.Types.ObjectId, ref: 'Plan' },
         type: { type: Number, enum: [1, 2], required: true, default: 1 } // 1 : plan
     },
-    { timestamps: true }
+    { timestamps: true, versionKey: false }
 );
 
 module.exports = mongoose.model('History', historySchema);

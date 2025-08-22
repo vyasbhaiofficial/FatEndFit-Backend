@@ -2,7 +2,6 @@ const express = require('express');
 const route = express.Router();
 
 const otherController = require('../../controllers/other.controller.js');
-const upload = require('../../../middleware/multer.js');
 
 /**
  * @swagger
@@ -27,8 +26,6 @@ const upload = require('../../../middleware/multer.js');
  *       200:
  *         description: Success
  */
-route.post('/generateUrl', upload.single('image'), otherController.generateUrl);
-
-route.post('/contactUs', otherController.contactUs);
+route.post('/generateUrl', otherController.generateUrl);
 
 module.exports = route;
