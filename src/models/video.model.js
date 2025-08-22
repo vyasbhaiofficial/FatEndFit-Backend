@@ -14,6 +14,6 @@ const videoSchema = new mongoose.Schema(
         videoSize: { type: Number, default: 0 },
         type: { type: Number, required: true, enum: [1, 2], default: 1 } // 1 : video day wise , 2 : webinar in live section
     },
-    { timestamps: true }
+    { timestamps: true, versionKey: false }
 );
 module.exports = mongoose.model('Video', videoSchema);

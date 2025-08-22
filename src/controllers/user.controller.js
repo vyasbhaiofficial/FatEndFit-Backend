@@ -119,7 +119,7 @@ exports.updateUserByUser = async (req, res) => {
             state,
             country
         } = req.body;
-
+        console.log('req.file', req.file, req.body);
         const user = await db.User.findOne({ _id: userId });
         if (!user) {
             return RESPONSE.error(res, 404, 3001);

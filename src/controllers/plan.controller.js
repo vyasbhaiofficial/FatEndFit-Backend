@@ -1,5 +1,6 @@
 const { db } = require('../models/index.model.js');
 const RESPONSE = require('../../utils/response.js');
+const { pagination } = require('../../utils/function.js');
 
 // Create Plan
 exports.createPlan = async (req, res) => {

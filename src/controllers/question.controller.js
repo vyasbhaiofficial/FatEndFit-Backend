@@ -1,15 +1,32 @@
 const { db } = require('../models/index.model.js');
 const RESPONSE = require('../../utils/response.js');
+const { pagination } = require('../../utils/function.js');
 
 // Create Question
-exports.createQuestion = async (req, res) => {
+exports.createQuestionByVideoId = async (req, res) => {
     try {
         const { videoId, questionText, correctAnswer } = req.body;
 
         const question = await db.Question.create({
             videoId,
             questionText,
-            correctAnswer
+            correctAnswer,
+            type: 1
+        });
+
+        return RESPONSE.success(res, 201, 8001, question);
+    } catch (err) {
+        return RESPONSE.error(res, 500, 9999, err.message);
+    }
+};
+
+// Create Question daily
+exports.createQuestionDaily = async (req, res) => {
+    try {
+        const { questionText } = req.body;
+
+        const question = await db.Question.create({
+            questionText
         });
 
         return RESPONSE.success(res, 201, 8001, question);
@@ -24,7 +41,6 @@ exports.getAllQuestionsByVideoId = async (req, res) => {
         const { videoId, start, limit } = req.query;
         const { role } = req;
         const options = pagination({ start, limit, role });
-
         const questions = await db.Question.find({ videoId })
             .sort({ createdAt: -1 })
             .skip(options.skip)
@@ -35,16 +51,62 @@ exports.getAllQuestionsByVideoId = async (req, res) => {
     }
 };
 
+// Get All Questions by daily
+exports.getAllQuestionsDailyRoutine = async (req, res) => {
+    try {
+        const { start, limit } = req.query;
+        const { role } = req;
+
+        const options = pagination({ start, limit, role });
+
+        const questions = await db.Question.find({ type: 2 })
+            .sort({ createdAt: 1 })
+            .skip(options.skip)
+            .limit(options.limit)
+            .lean();
+
+        if (role == 'user') {
+            const { id: userId, planCurrentDay } = req.user;
+            // get questions with thier submiteed answer
+            const userAnswer = await db.UserAnswer.findOne({ user: userId, day: planCurrentDay }).sort({
+                createdAt: -1
+            });
+            if (userAnswer) {
+                const questionIds = userAnswer.answers.map(a => a.questionId.toString());
+                questions.forEach(q => {
+                    if (questionIds.includes(q._id.toString())) {
+                        q.answer = userAnswer.answers.find(a => a.questionId.toString() == q._id.toString())?.answer;
+                        q.isSubmitted = true;
+                    }
+                });
+            }
+        }
+        return RESPONSE.success(res, 200, 8002, questions);
+    } catch (err) {
+        console.log('err', err);
+        return RESPONSE.error(res, 500, 9999, err.message);
+    }
+};
+
 // Update Question
 exports.updateQuestion = async (req, res) => {
     try {
         const { questionId } = req.params;
+        const { questionText, correctAnswer, videoId } = req.body;
 
-        const question = await db.Question.findByIdAndUpdate(questionId, req.body, { new: true });
+        const question = await db.Question.findById(questionId);
+
         if (!question) {
             return RESPONSE.error(res, 404, 8003);
         }
+        question.questionText = questionText ? questionText : question.questionText;
 
+        if (question.type == 1 && videoId) {
+            question.correctAnswer = correctAnswer ? correctAnswer : question.correctAnswer;
+            question.videoId = videoId;
+        }
+
+        await question.save();
         return RESPONSE.success(res, 200, 8005, question);
     } catch (err) {
         return RESPONSE.error(res, 500, 9999, err.message);

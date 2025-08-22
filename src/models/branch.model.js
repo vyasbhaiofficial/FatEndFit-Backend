@@ -23,7 +23,7 @@ const branchSchema = new mongoose.Schema(
         longitude: { type: String, required: true },
         isDeleted: { type: Boolean, default: false }
     },
-    { timestamps: true }
+    { timestamps: true, versionKey: false }
 );
 
 module.exports = mongoose.model('Branch', branchSchema);

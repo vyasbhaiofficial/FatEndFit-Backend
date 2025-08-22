@@ -20,11 +20,13 @@ exports.generateOTP = async () => {
     return number;
 };
 
-exports.pagination = ({ start = 1, limit = 20, role }) => {
+exports.pagination = ({ start, limit = 20, role }) => {
     let options = {};
     console.log('role', role, start, limit);
     // If role is admin, allow page-wise pagination
     if (role == 'admin') {
+        // Page-wise
+        if (!start) start = 1;
         if (start && limit) {
             // Page-wise (e.g., start=2, limit=10 → skip=10)
             const startIndex = (start - 1) * limit;
@@ -35,8 +37,8 @@ exports.pagination = ({ start = 1, limit = 20, role }) => {
     // App side infinite scroll
     else {
         // Infinite scroll uses start & limit directly
-        options.skip = parseInt(start);
-        options.limit = parseInt(limit);
+        options.skip = parseInt(start) ? parseInt(start) : 0;
+        options.limit = parseInt(limit) ? parseInt(limit) : 20;
     }
     console.log('options', options);
     return options;
