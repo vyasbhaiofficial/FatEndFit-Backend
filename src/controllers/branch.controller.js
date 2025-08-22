@@ -3,7 +3,8 @@ const RESPONSE = require('../../utils/response.js');
 
 exports.createBranch = async (req, res) => {
     try {
-        const { name, address, city, state, pincode, latitude, longitude, mobilePrefix, mobileNumber } = req.body;
+        const { name, address, city, state, pincode, email, latitude, longitude, mobilePrefix, mobileNumber } =
+            req.body;
 
         const existingBranch = await db.Branch.findOne({ name, isDeleted: false });
         if (existingBranch) {
@@ -17,6 +18,7 @@ exports.createBranch = async (req, res) => {
             pincode,
             latitude,
             longitude,
+            email,
             mobilePrefix: mobilePrefix || '+91',
             mobileNumber
         });
