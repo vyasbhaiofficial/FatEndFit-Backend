@@ -43,7 +43,7 @@ route.get('/get', questionController.getAllQuestionsByVideoId);
  * @swagger
  * /user/question/get-daily:
  *   get:
- *     summary: Get all questions daily routine
+ *     summary: Get all daily routine questions for a user
  *     tags: [Question]
  *     security:
  *       - bearerAuth: []
