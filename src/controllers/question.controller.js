@@ -23,10 +23,12 @@ exports.createQuestionByVideoId = async (req, res) => {
 // Create Question daily
 exports.createQuestionDaily = async (req, res) => {
     try {
-        const { questionText } = req.body;
+        const { questionText, section } = req.body;
 
         const question = await db.Question.create({
-            questionText
+            questionText,
+            section: section || 'first',
+            type: 2
         });
 
         return RESPONSE.success(res, 201, 8001, question);
@@ -54,34 +56,40 @@ exports.getAllQuestionsByVideoId = async (req, res) => {
 // Get All Questions by daily
 exports.getAllQuestionsDailyRoutine = async (req, res) => {
     try {
-        const { start, limit } = req.query;
         const { role } = req;
 
-        const options = pagination({ start, limit, role });
-
-        const questions = await db.Question.find({ type: 2 })
-            .sort({ createdAt: 1 })
-            .skip(options.skip)
-            .limit(options.limit)
-            .lean();
+        let firstQuestions = await db.Question.find({ type: 2, section: 'first' }).sort({ createdAt: 1 }).lean();
+        let lastQuestions = await db.Question.find({ type: 2, section: 'second' }).sort({ createdAt: 1 }).lean();
 
         if (role == 'user') {
             const { id: userId, planCurrentDay } = req.user;
-            // get questions with thier submiteed answer
             const userAnswer = await db.UserAnswer.findOne({ user: userId, day: planCurrentDay }).sort({
                 createdAt: -1
             });
+
             if (userAnswer) {
                 const questionIds = userAnswer.answers.map(a => a.questionId.toString());
-                questions.forEach(q => {
-                    if (questionIds.includes(q._id.toString())) {
-                        q.answer = userAnswer.answers.find(a => a.questionId.toString() == q._id.toString())?.answer;
-                        q.isSubmitted = true;
-                    }
-                });
+
+                const markAnswers = questions => {
+                    questions.forEach(q => {
+                        if (questionIds.includes(q._id.toString())) {
+                            q.answer = userAnswer.answers.find(
+                                a => a.questionId.toString() == q._id.toString()
+                            )?.answer;
+                            q.isSubmitted = true;
+                        }
+                    });
+                };
+
+                markAnswers(firstQuestions);
+                markAnswers(lastQuestions);
             }
         }
-        return RESPONSE.success(res, 200, 8002, questions);
+
+        return RESPONSE.success(res, 200, 8002, {
+            questionList: firstQuestions,
+            data: lastQuestions
+        });
     } catch (err) {
         console.log('err', err);
         return RESPONSE.error(res, 500, 9999, err.message);

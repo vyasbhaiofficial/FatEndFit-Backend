@@ -11,7 +11,7 @@ const questionController = require('../../controllers/question.controller.js');
 
 /**
  * @swagger
- * /admin/question/createQuestionByVideoId:
+ * /admin/question/create-by-video:
  *   post:
  *     summary: Create a new question for a video
  *     tags: [Question]
@@ -45,8 +45,7 @@ route.post('/create-by-video', questionController.createQuestionByVideoId);
  * @swagger
  * /admin/question/create-daily:
  *   post:
- *     summary: Create a daily question
- *     description: Create a new daily question for users.
+ *     summary: Create a new question daily routine
  *     tags: [Question]
  *     security:
  *       - bearerAuth: []
@@ -56,20 +55,19 @@ route.post('/create-by-video', questionController.createQuestionByVideoId);
  *         application/json:
  *           schema:
  *             type: object
- *             required:
- *               - questionText
  *             properties:
  *               questionText:
  *                 type: string
- *                 example: "Did you complete your daily task?"
+ *                 example: "Do you practice yoga daily?"
+ *               section:
+ *                 type: string
+ *                 example: first
  *     responses:
  *       201:
  *         description: Question created successfully
- *       401:
- *         description: Unauthorized - Invalid or missing token
  *       500:
- *         description: Internal server error
- */
+ *         description: Server error
+ * */
 route.post('/create-daily', questionController.createQuestionDaily);
 
 /**
