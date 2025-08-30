@@ -81,10 +81,17 @@ route.post('/submit', userAnswerController.submitAnswers);
  * /user/useranswer/submit-daily-report:
  *   post:
  *     summary: Submit answers for a daily progress
- *     description: User submits answers for a dailyprogress or update currentDay progress.
+ *     description: User submits answers for a daily progress or updates current day progress.
  *     tags: [User]
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: day
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: The day number of the progress (e.g., 1, 2, 3)
  *     requestBody:
  *       required: true
  *       content:
@@ -108,39 +115,78 @@ route.post('/submit', userAnswerController.submitAnswers);
  *                     answer:
  *                       type: boolean
  *                       description: User's answer (true for Yes, false for No)
- *                       example: true
+ *                       example: 20
  *     responses:
  *       200:
  *         description: Answers submitted successfully
  *         content:
  *           application/json:
- *             example:
- *               success: true
- *               message: 9001
- *               data:
- *                 _id: "64df701e1a2bcd9f98765432"
- *                 user: "64df6c9a1a2bcd9f23456789"
- *                 answers:
- *                   - questionId: "64df6d0f1a2bcd9f87654321"
- *                     answer: true
- *                     isCorrect: false
- *                 score: 0
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: integer
+ *                   example: 9001
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                       example: "64df701e1a2bcd9f98765432"
+ *                     user:
+ *                       type: string
+ *                       example: "64df6c9a1a2bcd9f23456789"
+ *                     answers:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           questionId:
+ *                             type: string
+ *                             example: "64df6d0f1a2bcd9f87654321"
+ *                           answer:
+ *                             type: boolean
+ *                             example: true
+ *                           isCorrect:
+ *                             type: boolean
+ *                             example: false
+ *                     score:
+ *                       type: integer
+ *                       example: 0
  *       404:
- *         description: Video not found
+ *         description: Daily report or video not found
  *         content:
  *           application/json:
- *             example:
- *               success: false
- *               message: 7003
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: integer
+ *                   example: 7003
  *       500:
  *         description: Internal server error
  *         content:
  *           application/json:
- *             example:
- *               success: false
- *               message: 9999
- *               error: "Something went wrong"
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: integer
+ *                   example: 9999
+ *                 error:
+ *                   type: string
+ *                   example: "Something went wrong"
  */
+
 route.post('/submit-daily-report', userAnswerController.submitDailyReport);
 
 module.exports = route;

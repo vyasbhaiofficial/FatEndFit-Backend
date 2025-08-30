@@ -61,9 +61,10 @@ exports.submitAnswers = async (req, res) => {
 exports.submitDailyReport = async (req, res) => {
     try {
         const { answers } = req.body; // answers = [{ questionId, answer }]
-        const { id: userId, planCurrentDay } = req.user; // From auth middleware
+        const { day } = req.query; // @todo swagger
 
-        const userAnswer = await db.UserAnswer.findOne({ user: userId, day: planCurrentDay }).sort({ createdAt: -1 });
+        const userId = req.user?.id;
+        const userAnswer = await db.UserAnswer.findOne({ user: userId, day }).sort({ createdAt: -1 });
 
         // here now i need direct save only question and answer no score and isCorrect save
         const checkedAnswers = answers.map(a => {
@@ -81,7 +82,7 @@ exports.submitDailyReport = async (req, res) => {
             //  Save user’s attempt
             userAnswer = await db.UserAnswer.create({
                 user: userId,
-                day: planCurrentDay,
+                day: day,
                 answers: checkedAnswers,
                 score: 0
             });

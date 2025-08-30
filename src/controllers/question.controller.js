@@ -28,7 +28,8 @@ exports.createQuestionDaily = async (req, res) => {
         const question = await db.Question.create({
             questionText,
             section: section || 'first',
-            type: 2
+            type: 2,
+            userAnswer
         });
 
         return RESPONSE.success(res, 201, 8001, question);
@@ -40,13 +41,8 @@ exports.createQuestionDaily = async (req, res) => {
 // Get All Questions
 exports.getAllQuestionsByVideoId = async (req, res) => {
     try {
-        const { videoId, start, limit } = req.query;
-        const { role } = req;
-        const options = pagination({ start, limit, role });
-        const questions = await db.Question.find({ videoId })
-            .sort({ createdAt: -1 })
-            .skip(options.skip)
-            .limit(options.limit);
+        const { videoId } = req.query;
+        const questions = await db.Question.find({ videoId }).sort({ createdAt: -1 });
         return RESPONSE.success(res, 200, 8002, questions);
     } catch (err) {
         return RESPONSE.error(res, 500, 9999, err.message);
@@ -57,13 +53,14 @@ exports.getAllQuestionsByVideoId = async (req, res) => {
 exports.getAllQuestionsDailyRoutine = async (req, res) => {
     try {
         const { role } = req;
+        const { day } = req.query; // @todo swagger
 
         let firstQuestions = await db.Question.find({ type: 2, section: 'first' }).sort({ createdAt: 1 }).lean();
         let lastQuestions = await db.Question.find({ type: 2, section: 'second' }).sort({ createdAt: 1 }).lean();
 
         if (role == 'user') {
-            const { id: userId, planCurrentDay } = req.user;
-            const userAnswer = await db.UserAnswer.findOne({ user: userId, day: planCurrentDay }).sort({
+            const { id: userId } = req.user;
+            const userAnswer = await db.UserAnswer.findOne({ user: userId, day }).sort({
                 createdAt: -1
             });
 
@@ -72,23 +69,31 @@ exports.getAllQuestionsDailyRoutine = async (req, res) => {
 
                 const markAnswers = questions => {
                     questions.forEach(q => {
+                        q.answer = '';
                         if (questionIds.includes(q._id.toString())) {
                             q.answer = userAnswer.answers.find(
                                 a => a.questionId.toString() == q._id.toString()
                             )?.answer;
-                            q.isSubmitted = true;
                         }
                     });
                 };
-
                 markAnswers(firstQuestions);
                 markAnswers(lastQuestions);
+            } else {
+                firstQuestions = firstQuestions.map(q => {
+                    q.answer = '';
+                    return q;
+                });
+                lastQuestions = lastQuestions.map(q => {
+                    q.answer = '';
+                    return q;
+                });
             }
         }
 
         return RESPONSE.success(res, 200, 8002, {
-            questionList: firstQuestions,
-            data: lastQuestions
+            firstQuestions,
+            lastQuestions
         });
     } catch (err) {
         console.log('err', err);
