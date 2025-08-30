@@ -15,6 +15,11 @@ exports.login = async (req, res) => {
         }
 
         if (fcmToken) user.fcmToken = fcmToken;
+        if (!user.activated) {
+            user.activated = true;
+            user.planCurrentDay = 1;
+            user.planCurrentDate = new Date().toISOString().split('T')[0];
+        }
         await user.save();
 
         token = jwt.sign(
@@ -59,6 +64,7 @@ exports.addUser = async (req, res) => {
             plan: planId,
             patientId: await generatePatientId()
         });
+        // @todo plan assign history
 
         return RESPONSE.success(res, 201, 1001, user);
     } catch (err) {

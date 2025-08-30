@@ -17,20 +17,6 @@ const questionController = require('../../controllers/question.controller.js');
  *         schema:
  *           type: string
  *         description: ID of the video
- *       - in: query
- *         name: start
- *         schema:
- *           type: integer
- *         example: 0
- *         required: false
- *         description: Pagination start index
- *       - in: query
- *         name: limit
- *         schema:
- *           type: integer
- *         example: 10
- *         required: false
- *         description: Pagination limit
  *     responses:
  *       200:
  *         description: List of questions
@@ -44,29 +30,62 @@ route.get('/get', questionController.getAllQuestionsByVideoId);
  * /user/question/get-daily:
  *   get:
  *     summary: Get all daily routine questions for a user
+ *     description: Fetches first and second section daily routine questions for the given day. If the user has already answered, their answers will be included.
  *     tags: [Question]
  *     security:
  *       - bearerAuth: []
  *     parameters:
  *       - in: query
- *         name: start
+ *         name: day
  *         schema:
  *           type: integer
- *         example: 0
- *         required: false
- *         description: Pagination start index
- *       - in: query
- *         name: limit
- *         schema:
- *           type: integer
- *         example: 10
- *         required: false
- *         description: Pagination limit
+ *         required: true
+ *         description: Day number for which questions are fetched
  *     responses:
  *       200:
- *         description: List of questions
+ *         description: Successfully retrieved daily routine questions
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: boolean
+ *                   example: true
+ *                 code:
+ *                   type: integer
+ *                   example: 8002
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     firstQuestions:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           _id:
+ *                             type: string
+ *                           questionText:
+ *                             type: string
+ *                           answer:
+ *                             type: integer
+ *                             example: 0
+ *                     lastQuestions:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           _id:
+ *                             type: string
+ *                           questionText:
+ *                             type: string
+ *                           answer:
+ *                             type: integer
+ *                             example: 0
+ *       401:
+ *         description: Unauthorized, token missing or invalid
  *       500:
- *         description: Server error
+ *         description: Internal server error
  */
 route.get('/get-daily', questionController.getAllQuestionsDailyRoutine);
 
