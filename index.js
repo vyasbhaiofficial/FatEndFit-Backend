@@ -38,7 +38,9 @@ cron.schedule('0 0 * * *', async () => {
     const now = new Date();
     const date = now.toISOString().split('T')[0];
     try {
-        const users = await db.User.find({ isDeleted: false, planHoldDate: { $eq: null } }).populate('plan');
+        const users = await db.User.find({ isDeleted: false, activated: true, planHoldDate: { $eq: null } }).populate(
+            'plan'
+        );
         for (const user of users) {
             const planDay = user.plan.days;
             const nextDay = user.planCurrentDay + 1;

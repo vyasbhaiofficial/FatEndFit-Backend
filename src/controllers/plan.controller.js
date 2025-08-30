@@ -102,9 +102,7 @@ exports.planAssignToUser = async (req, res) => {
         if (!plan || plan.isDeleted) {
             return RESPONSE.error(res, 404, 6003);
         }
-        console.log('.......fdsf..');
 
-        console.log(userId);
         //  Get highest days plan from History
         const lastHistory = await db.History.aggregate([
             { $match: { user: new mongoose.Types.ObjectId(userId), type: 1 } },

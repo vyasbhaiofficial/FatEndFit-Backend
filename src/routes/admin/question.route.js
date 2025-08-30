@@ -83,18 +83,6 @@ route.post('/create-daily', questionController.createQuestionDaily);
  *         schema:
  *           type: string
  *         description: ID of the video
- *       - in: query
- *         name: start
- *         schema:
- *           type: integer
- *         required: false
- *         description: Pagination start index
- *       - in: query
- *         name: limit
- *         schema:
- *           type: integer
- *         required: false
- *         description: Pagination limit
  *     responses:
  *       200:
  *         description: List of questions

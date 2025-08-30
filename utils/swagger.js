@@ -4,7 +4,7 @@ const options = {
     definition: {
         openapi: '3.0.0',
         info: {
-            title: 'Dating Admin API',
+            title: 'FatEndFit API',
             version: '1.0.0',
             description: 'API documentation for your Dating Admin backend'
         },
