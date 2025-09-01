@@ -39,10 +39,8 @@ const upload = require('../../../middleware/multer.js');
  *                 description: Required if videoType = 1
  *               videoSecond:
  *                 type: number
- *                 description: Required if videoType = 2
- *               language:
- *                 type: string
- *                 example: "English"
+ *                 example: 120
+ *                 description: Required if videoType = 2 (video duration in seconds)
  *               thumbnailType:
  *                 type: integer
  *                 enum: [1, 2]
@@ -57,19 +55,32 @@ const upload = require('../../../middleware/multer.js');
  *                 example: "A 20-minute yoga routine for beginners."
  *               type:
  *                 type: integer
- *                 enum: [1, 2]
+ *                 enum: [1, 2, 3, 4]
  *                 example: 1
- *                 description: 1 = video day wise , 2 = webinar in live section
+ *                 description: |
+ *                   1 = Day wise video (day required)
+ *                   2 = Webinar/Live video
+ *                   3 = Testimonial video
+ *                   4 = Testimonial video (category required)
  *               day:
  *                 type: integer
  *                 example: 1
- *                 description: Required if videoType = 1
+ *                 description: Required if type = 1
+ *               category:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 example: ["64f2a1b9c83d1a7b2f4d9a1e", "64f2a1b9c83d1a7b2f4d9a1f"]
+ *                 description: Required if type = 4 (Array of Category IDs)
  *     responses:
  *       201:
  *         description: Video created successfully
+ *       400:
+ *         description: Validation error
  *       500:
  *         description: Server error
  */
+
 route.post(
     '/create',
     upload.fields([
@@ -136,7 +147,7 @@ route.get('/byId/:videoId', videoController.getVideoById);
 
 /**
  * @swagger
- * /admin/video/update/{id}:
+ * /admin/video/update/{videoId}:
  *   put:
  *     summary: Update a video
  *     tags: [Video]
@@ -144,10 +155,11 @@ route.get('/byId/:videoId', videoController.getVideoById);
  *       - bearerAuth: []
  *     parameters:
  *       - in: path
- *         name: id
+ *         name: videoId
  *         required: true
  *         schema:
  *           type: string
+ *         description: ID of the video to update
  *     requestBody:
  *       required: false
  *       content:
@@ -157,27 +169,42 @@ route.get('/byId/:videoId', videoController.getVideoById);
  *             properties:
  *               title:
  *                 type: string
- *               language:
- *                 type: string
  *               videoType:
  *                 type: integer
  *                 enum: [1, 2]
+ *                 description: "1 = Upload video file, 2 = Video URL"
  *               video:
  *                 type: string
  *                 format: binary
+ *                 description: "Upload video file if videoType = 1, else provide URL in body"
  *               videoSecond:
  *                 type: number
- *                 description: Required if videoType = 2
+ *                 description: "Required if videoType = 2 (URL video duration)"
  *               thumbnailType:
  *                 type: integer
  *                 enum: [1, 2]
+ *                 description: "1 = Upload thumbnail file, 2 = Thumbnail URL"
  *               thumbnail:
  *                 type: string
  *                 format: binary
+ *                 description: "Upload thumbnail file if thumbnailType = 1, else provide URL in body"
  *               description:
  *                 type: string
  *               day:
  *                 type: integer
+ *               type:
+ *                 type: integer
+ *                 enum: [1, 2, 3, 4]
+ *                 description: |
+ *                   1 = Day wise video (day required)
+ *                   2 = Webinar/Live video
+ *                   3 = Category wise video (category required)
+ *                   4 = Testimonial video (category required)
+ *               category:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 description: "Array of category IDs (required if type = 3 or 4)"
  *     responses:
  *       200:
  *         description: Video updated successfully
@@ -186,7 +213,15 @@ route.get('/byId/:videoId', videoController.getVideoById);
  *       500:
  *         description: Server error
  */
-route.put('/update/:videoId', videoController.updateVideo);
+
+route.put(
+    '/update/:videoId',
+    upload.fields([
+        { name: 'video', maxCount: 1 },
+        { name: 'thumbnail', maxCount: 1 }
+    ]),
+    videoController.updateVideo
+);
 
 /**
  * @swagger
