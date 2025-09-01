@@ -7,7 +7,6 @@ const { generateOTP, generatePatientId, sendOTP } = require('../../utils/functio
 exports.login = async (req, res) => {
     try {
         const { mobileNumber, fcmToken } = req.body;
-        let token = null;
         let user;
         user = await db.User.findOne({ mobileNumber });
         if (!user) {
@@ -22,18 +21,23 @@ exports.login = async (req, res) => {
         }
         await user.save();
 
-        token = jwt.sign(
+        const accessToken = jwt.sign(
             { id: user._id, mobileNumber: user.mobileNumber, role: 'user' },
-            process.env.JWT_SECRET, // use env secret
-            { expiresIn: '7d' }
+            process.env.JWT_SECRET,
+            { expiresIn: '15m' } // short expiry
         );
+
+        // Refresh Token (long expiry)
+        const refreshToken = jwt.sign({ id: user._id }, process.env.JWT_REFRESH_SECRET, { expiresIn: '7d' });
+
+        await user.save();
 
         // const OTP = generateOTP();
 
         const OTP = 1234;
         // sendOTP({ OTP, mobileNumber }); // @todo
 
-        return RESPONSE.success(res, 200, 1001, { user, OTP, token });
+        return RESPONSE.success(res, 200, 1001, { user, OTP, accessToken, refreshToken });
     } catch (err) {
         return RESPONSE.error(res, 500, 9999, err.message);
     }
@@ -282,6 +286,40 @@ exports.updateFcmToken = async (req, res) => {
         user.fcmToken = fcmToken;
         await user.save();
         return RESPONSE.success(res, 200, 1001, user);
+    } catch (err) {
+        return RESPONSE.error(res, 500, 9999, err.message);
+    }
+};
+
+exports.refreshToken = async (req, res) => {
+    try {
+        const { refreshToken } = req.body;
+        if (!refreshToken) {
+            return RESPONSE.error(res, 401, 2002, 'Refresh token required');
+        }
+
+        jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET, async (err, decoded) => {
+            if (err) {
+                return RESPONSE.error(res, 403, 2002, 'Invalid or expired refresh token');
+            }
+
+            const user = await db.User.findOne({ _id: decoded.id, isDeleted: false });
+            if (!user) {
+                return RESPONSE.error(res, 404, 3001, 'User not found');
+            }
+
+            if (user.isBlocked) {
+                return RESPONSE.error(res, 403, 3002, 'User is blocked');
+            }
+
+            const newAccessToken = jwt.sign(
+                { id: user._id, mobileNumber: user.mobileNumber, role: 'user' },
+                process.env.JWT_SECRET,
+                { expiresIn: '15m' }
+            );
+
+            return RESPONSE.success(res, 200, 1002, { accessToken: newAccessToken });
+        });
     } catch (err) {
         return RESPONSE.error(res, 500, 9999, err.message);
     }

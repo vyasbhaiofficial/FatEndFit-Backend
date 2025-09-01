@@ -6,6 +6,7 @@ const MESSAGES = {
     2001: 'Login successfully',
     2002: 'Invalid token',
     2003: 'Admin Does Not Found',
+    2004: 'Token expired',
 
     // user
     3001: 'User not Found',
@@ -77,7 +78,15 @@ const MESSAGES = {
     // api error
     9998: 'Access denied for this route',
     9999: 'Something went wrong !!',
-    4444: 'Access denied for this route'
+    4444: 'Access denied for this route',
+
+    //ctegory
+    1881: 'Category created successfully',
+    1883: 'Category not found',
+    1885: 'Category title required',
+    1886: 'Category deleted successfully',
+    1887: 'Category upated successfully',
+    9003: 'Categories fetched successfully',
 };
 
 const get_message = message_code => {
