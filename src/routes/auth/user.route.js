@@ -60,4 +60,54 @@ const userController = require('../../controllers/user.controller.js');
 
 route.post('/login', userController.login);
 
+/**
+ * @swagger
+ * /auth/user/refresh-token:
+ *   post:
+ *     summary: Refresh JWT token
+ *     tags:
+ *       - Auth
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - refreshToken
+ *             properties:
+ *               refreshToken:
+ *                 type: string
+ *                 example: "your_refresh_token_here"
+ *     responses:
+ *       200:
+ *         description: Token refreshed successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 200
+ *                 code:
+ *                   type: integer
+ *                   example: 1002
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     accessToken:
+ *                       type: string
+ *                       example: "new_access_token_here"
+ *       401:
+ *         description: Refresh token required
+ *       403:
+ *         description: Invalid or expired refresh token / User is blocked
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Server error
+ */
+route.post('/refresh-token', userController.refreshToken);
+
 module.exports = route;
