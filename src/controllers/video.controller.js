@@ -7,7 +7,12 @@ const { pagination } = require('../../utils/function.js');
 // Create Video
 exports.createVideo = async (req, res) => {
     try {
-        const { title, video, videoType, thumbnail, thumbnailType, description, day, videoSecond, type } = req.body;
+        const { title, video, videoType, thumbnail, thumbnailType, description, day, videoSecond, type, category } = req.body;
+
+
+        if (Number(type) === 3 && !category) {
+            return RESPONSE.error(res, 400, 1883);
+        }
 
         // thumbnailType == 2 && (thumbnail = req.body.thumbnail)
         // thumbnailType == 1 && (thumbnail = req.file.path);

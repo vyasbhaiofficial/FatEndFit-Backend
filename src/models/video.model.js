@@ -12,8 +12,16 @@ const videoSchema = new mongoose.Schema(
         isDeleted: { type: Boolean, default: false },
         videoSec: { type: Number, default: 0 },
         videoSize: { type: Number, default: 0 },
-        type: { type: Number, required: true, enum: [1, 2], default: 1 } // 1 : video day wise , 2 : webinar in live section
+        type: {
+            type: Number,
+            required: true,
+            enum: [1, 2, 3], // 1 : video day wise //2 : webinar (live section) // 3 : testimonial video
+            default: 1
+        },
+
+        category: { type: mongoose.Schema.Types.ObjectId, ref: 'Category' }
     },
     { timestamps: true, versionKey: false }
 );
+
 module.exports = mongoose.model('Video', videoSchema);

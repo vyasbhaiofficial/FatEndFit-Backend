@@ -54,7 +54,13 @@ exports.user_auth = async (req, res, next) => {
                 return RESPONSE.error(res, 500, 2002, null); // @todo
             }
         } catch (err) {
-            console.log('------------Error verifying token:', err);
+            if (err.name === 'TokenExpiredError') {
+                return RESPONSE.error(res, 401, 2004, 'आपका token expire हो गया है');
+            }
+            if (err.name === 'JsonWebTokenError') {
+                return RESPONSE.error(res, 401, 2002, 'Invalid token');
+            }
+
             return RESPONSE.error(res, 500, 9999, err.message);
         }
     } catch (e) {
@@ -76,7 +82,6 @@ exports.verifyToken = async token => {
             throw new Error('User is blocked');
         }
         userObj = decoded;
-        userObj.isHost = user.isHost;
         return userObj;
     } catch (err) {
         console.log('err :>> ', err);

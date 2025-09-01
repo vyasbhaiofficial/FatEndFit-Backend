@@ -10,5 +10,6 @@ db.UserAnswer = require('../models/userAnswer.model.js');
 db.History = require('../models/history.model.js');
 db.UserVideoProgress = require('../models/userVideoProgress.model.js');
 db.Setting = require('../models/setting.model.js');
+db.Category = require('../models/category.model.js');
 
 module.exports = { db };
