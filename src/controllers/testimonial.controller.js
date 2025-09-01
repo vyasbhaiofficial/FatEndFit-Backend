@@ -32,10 +32,10 @@ exports.getAllTestimonials = async (req, res) => {
             });
         });
 
-        const response = {
+         const response = {
             title: type3Videos.title,
-            urlVideo: type3Videos.thumbnail,
-            thumUrl: type3Videos.video,
+            thumUrl: type3Videos.thumbnail,
+            urlVideo: type3Videos.video,
             category: Object.values(categoryMap)
         };
 
