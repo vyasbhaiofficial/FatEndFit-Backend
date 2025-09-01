@@ -7,6 +7,7 @@ const MESSAGES = {
     2002: 'Invalid token',
     2003: 'Admin Does Not Found',
     2004: 'Token expired',
+    2005: 'Refresh Token required',
 
     // user
     3001: 'User not Found',

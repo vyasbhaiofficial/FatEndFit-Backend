@@ -38,7 +38,9 @@ const userSchema = new mongoose.Schema(
         activated: { type: Boolean, default: false },
         isDeleted: { type: Boolean, default: false },
         isBlocked: { type: Boolean, default: false },
-        isProfileUpdated: { type: Boolean, default: false }
+        isProfileUpdated: { type: Boolean, default: false },
+        refreshToken : { type: String },
+
     },
     { timestamps: true, versionKey: false }
 );
