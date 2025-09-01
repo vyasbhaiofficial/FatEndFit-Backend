@@ -15,11 +15,11 @@ const videoSchema = new mongoose.Schema(
         type: {
             type: Number,
             required: true,
-            enum: [1, 2, 3], // 1 : video day wise //2 : webinar (live section) // 3 : testimonial video
+            enum: [1, 2, 3,4], // 1 : video day wise //2 : webinar (live section) // 3 : testimonial video // 4: category wise
             default: 1
         },
 
-        category: { type: mongoose.Schema.Types.ObjectId, ref: 'Category' }
+        category: { type: mongoose.Schema.Types.ObjectId, ref: 'Category',default:'' }, // if type 4 then required
     },
     { timestamps: true, versionKey: false }
 );

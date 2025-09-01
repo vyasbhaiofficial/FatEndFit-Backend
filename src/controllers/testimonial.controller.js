@@ -3,52 +3,45 @@ const RESPONSE = require('../../utils/response.js');
 
 exports.getAllTestimonials = async (req, res) => {
     try {
-        const videos = await db.Video.aggregate([
-            { $match: { isDeleted: false, type: 3 } }, // ✅ testimonial only
-            {
-                $lookup: {
-                    from: 'categories',
-                    localField: 'category',
-                    foreignField: '_id',
-                    as: 'category'
-                }
-            },
-            { $unwind: '$category' },
-            {
-                $group: {
-                    _id: '$category._id',
-                    categoryTitle: { $first: '$category.categoryTitle' },
-                    categoryId: { $first: '$category.categoryId' },
-                    list: {
-                        $push: {
-                            title: '$title',
-                            dec: '$description',
-                            thubnail: '$thumbnail',
-                            videoid: '$_id',
-                            videoUrl: '$video'
-                        }
-                    }
-                }
-            },
-            {
-                $project: {
-                    _id: 0,
-                    categoryId: 1,
-                    categoryTitle: 1,
-                    list: 1
-                }
+        // Type 3: Testimonial videos
+        const type3Videos = await db.Video.findOne({ type: 3, isDeleted: false });
+
+        // Type 4: Category-wise videos
+        const type4Videos = await db.Video.find({ type: 4, isDeleted: false }).populate('category');
+
+        // Category-wise grouping
+        const categoryMap = {};
+        type4Videos.forEach(video => {
+            const catId = video.category?._id?.toString();
+            if (!catId) return;
+
+            if (!categoryMap[catId]) {
+                categoryMap[catId] = {
+                    categoryId: catId,
+                    categoryTitle: video.category.categoryTitle,
+                    list: []
+                };
             }
-        ]);
+
+            categoryMap[catId].list.push({
+                title: video.title,
+                dec: video.description,
+                thubnail: video.thumbnail,
+                videoid: video._id,
+                videoUrl: video.video
+            });
+        });
 
         const response = {
-            titleVideo: '',
-            urlVideo: '',
-            thumUrl: '',
-            category: videos
+            title: type3Videos.title,
+            urlVideo: type3Videos.thumbnail,
+            thumUrl: type3Videos.video,
+            category: Object.values(categoryMap)
         };
 
-        return RESPONSE.success(res, 200, 7007, response);
+        res.status(200).json(response);
     } catch (err) {
-        return RESPONSE.error(res, 500, 9999, err.message);
+        console.error(err);
+        res.status(500).json({ message: 'Server Error' });
     }
 };
