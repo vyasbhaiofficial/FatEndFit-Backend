@@ -7,10 +7,10 @@ const { pagination } = require('../../utils/function.js');
 // Create Video
 exports.createVideo = async (req, res) => {
     try {
-        const { title, video, videoType, thumbnail, thumbnailType, description, day, videoSecond, type, category } = req.body;
+        const { title, video, videoType, thumbnail, thumbnailType, description, day, videoSecond, type, category } =
+            req.body;
 
-
-        if (Number(type) === 3 && !category) {
+        if (Number(type) === 4 && !category) {
             return RESPONSE.error(res, 400, 1883);
         }
 
@@ -26,7 +26,10 @@ exports.createVideo = async (req, res) => {
 
         const imageFile = req.files?.thumbnail?.[0]?.path || undefined;
         const videoFile = req.files?.video?.[0]?.path || undefined;
-
+        console.log('------------------', req.body);
+        if (category) {
+            console.log('------------------', req.body);
+        }
         const newVideo = await db.Video.create({
             title,
             video: videoType == 2 ? video : videoFile,
@@ -37,7 +40,8 @@ exports.createVideo = async (req, res) => {
             day: Number(type) == 1 ? day : null,
             type,
             videoSec: videoType == 2 ? Number(videoSecond) : Math.round(videoSec),
-            videoSize: videoSizeMB
+            videoSize: videoSizeMB,
+            ...(category ? { category } : { category: null })
         });
 
         return RESPONSE.success(res, 201, 7001, newVideo);
@@ -83,8 +87,9 @@ exports.getVideoById = async (req, res) => {
 // Update Video
 exports.updateVideo = async (req, res) => {
     try {
-        const videoId = req.params.id;
-        const { title, video, videoType, thumbnail, thumbnailType, description, day, videoSecond } = req.body;
+        const videoId = req.params.videoId;
+        const { title, video, videoType, thumbnail, thumbnailType, description, day, videoSecond, category } = req.body;
+        console.log('-----------------------------------', req.body);
 
         // Find existing video
         const existingVideo = await db.Video.findById(videoId);
@@ -97,7 +102,8 @@ exports.updateVideo = async (req, res) => {
             videoType: videoType ?? existingVideo.videoType,
             thumbnailType: thumbnailType ?? existingVideo.thumbnailType,
             description: description ?? existingVideo.description,
-            day: day ?? existingVideo.day
+            day: day ?? existingVideo.day,
+            category: category ?? existingVideo.category
         };
 
         // Handle video file update
@@ -115,7 +121,7 @@ exports.updateVideo = async (req, res) => {
         }
 
         // Handle thumbnail file update
-        let imageFile = req.files?.image?.[0]?.path;
+        let imageFile = req.files?.thumbnail?.[0]?.path;
         if (thumbnailType == 2) {
             updatedData.thumbnail = thumbnail ?? existingVideo.thumbnail; // URL from body
         } else if (imageFile) {
