@@ -7,8 +7,8 @@ const { generateOTP, generatePatientId, sendOTP } = require('../../utils/functio
 exports.login = async (req, res) => {
     try {
         const { mobileNumber, fcmToken } = req.body;
-        let user;
-        user = await db.User.findOne({ mobileNumber });
+
+        let user = await db.User.findOne({ mobileNumber });
         if (!user) {
             return RESPONSE.error(res, 404, 3001);
         }
@@ -19,23 +19,21 @@ exports.login = async (req, res) => {
             user.planCurrentDay = 1;
             user.planCurrentDate = new Date().toISOString().split('T')[0];
         }
-        await user.save();
 
+        // Access token (short expiry)
         const accessToken = jwt.sign(
             { id: user._id, mobileNumber: user.mobileNumber, role: 'user' },
             process.env.JWT_SECRET,
-            { expiresIn: '15m' } // short expiry
+            { expiresIn: '15m' }
         );
 
-        // Refresh Token (long expiry)
+        // Refresh token (long expiry)
         const refreshToken = jwt.sign({ id: user._id }, process.env.JWT_REFRESH_SECRET, { expiresIn: '7d' });
 
+        user.refreshToken = refreshToken;
         await user.save();
 
-        // const OTP = generateOTP();
-
-        const OTP = 1234;
-        // sendOTP({ OTP, mobileNumber }); // @todo
+        const OTP = 1234; // @todo: real OTP
 
         return RESPONSE.success(res, 200, 1001, { user, OTP, accessToken, refreshToken });
     } catch (err) {
@@ -291,36 +289,61 @@ exports.updateFcmToken = async (req, res) => {
     }
 };
 
+
 exports.refreshToken = async (req, res) => {
     try {
         const { refreshToken } = req.body;
         if (!refreshToken) {
-            return RESPONSE.error(res, 401, 2002, 'Refresh token required');
+            return RESPONSE.error(res, 401, 2005);
+        }
+
+        const user = await db.User.findOne({ refreshToken, isDeleted: false });
+        if (!user) {
+            return RESPONSE.error(res, 403,3001);
+        }
+        if (user.isBlocked) {
+            return RESPONSE.error(res, 403, 3004);
         }
 
         jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET, async (err, decoded) => {
-            if (err) {
-                return RESPONSE.error(res, 403, 2002, 'Invalid or expired refresh token');
+            if (err && err.name === "TokenExpiredError") {
+                const newRefreshToken = jwt.sign(
+                    { id: user._id },
+                    process.env.JWT_REFRESH_SECRET,
+                    { expiresIn: "7d" }
+                );
+                const newAccessToken = jwt.sign(
+                    { id: user._id, mobileNumber: user.mobileNumber, role: "user" },
+                    process.env.JWT_SECRET,
+                    { expiresIn: "15m" }
+                );
+                user.refreshToken = newRefreshToken;
+                await user.save();
+
+                return RESPONSE.success(res, 200, 1002, {
+                    accessToken: newAccessToken,
+                    refreshToken: newRefreshToken,
+                });
             }
 
-            const user = await db.User.findOne({ _id: decoded.id, isDeleted: false });
-            if (!user) {
-                return RESPONSE.error(res, 404, 3001, 'User not found');
+            if (!err) {
+                const newAccessToken = jwt.sign(
+                    { id: user._id, mobileNumber: user.mobileNumber, role: "user" },
+                    process.env.JWT_SECRET,
+                    { expiresIn: "15m" }
+                );
+
+                return RESPONSE.success(res, 200, 1002, {
+                    accessToken: newAccessToken,
+                    refreshToken, 
+                });
             }
-
-            if (user.isBlocked) {
-                return RESPONSE.error(res, 403, 3002, 'User is blocked');
-            }
-
-            const newAccessToken = jwt.sign(
-                { id: user._id, mobileNumber: user.mobileNumber, role: 'user' },
-                process.env.JWT_SECRET,
-                { expiresIn: '15m' }
-            );
-
-            return RESPONSE.success(res, 200, 1002, { accessToken: newAccessToken });
+            return RESPONSE.error(res, 403, 2002, "Invalid refresh token");
         });
+
     } catch (err) {
         return RESPONSE.error(res, 500, 9999, err.message);
     }
 };
+
+
