@@ -10,7 +10,9 @@ const otherRoute = require('./other.route.js');
 const planRoute = require('./plan.route.js');
 const questionRoute = require('./question.route.js');
 const testimonialRoute = require('./testimonial.route.js');
+const referenceRoute = require('./reference.route.js');
 
+route.use('/reference', referenceRoute);
 route.use('/userAnswer', userAnswerRoute);
 route.use('/setting', settingRoute);
 route.use('/videoProgress', userVideoProgressRoute);

@@ -88,6 +88,11 @@ const MESSAGES = {
     1886: 'Category deleted successfully',
     1887: 'Category upated successfully',
     9003: 'Categories fetched successfully',
+
+    //reference
+    7001: 'Reference created successfully',
+    7002: 'References fetched successfully',
+    7003: 'Reference already exists with this mobile'
 };
 
 const get_message = message_code => {
