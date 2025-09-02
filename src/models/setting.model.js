@@ -6,7 +6,9 @@ const settingSchema = new mongoose.Schema(
         termsAndConditionsLink: { type: String, default: '' },
         appActive: { type: Boolean, default: true },
         version: { type: Number, default: 1 },
-        aboutUs: { type: String, default: '' }
+        aboutUs: { type: String, default: '' },
+        privacyPolicy: { type: String, default: '' },
+        termsAndConditions: { type: String, default: '' }
     },
     { timestamps: true }
 );
