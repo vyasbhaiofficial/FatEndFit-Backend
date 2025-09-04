@@ -8,7 +8,9 @@ const settingSchema = new mongoose.Schema(
         version: { type: Number, default: 1 },
         aboutUs: { type: String, default: '' },
         privacyPolicy: { type: String, default: '' },
-        termsAndConditions: { type: String, default: '' }
+        termsAndConditions: { type: String, default: '' },
+        resumeLink: { type: String, default: '' }
+
     },
     { timestamps: true }
 );
