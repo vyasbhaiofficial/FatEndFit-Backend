@@ -44,6 +44,14 @@ exports.createVideo = async (req, res) => {
             ...(category ? { category } : { category: null })
         });
 
+        if (Number(type) === 5) {
+            await db.Setting.findOneAndUpdate(
+                {},
+                { resumeLink: newVideo.video },
+                { new: true, upsert: true }
+            );
+        }
+
         return RESPONSE.success(res, 201, 7001, newVideo);
     } catch (err) {
         return RESPONSE.error(res, 500, 9999, err.message);

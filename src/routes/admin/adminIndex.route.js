@@ -9,6 +9,7 @@ const videoRoute = require('./video.route.js');
 const questionRoute = require('./question.route.js');
 const settingRoute = require('./setting.route.js');
 const categoryRoute = require('./category.route.js');
+const otherRoute = require('./other.route.js');
 
 route.use('/branch', branchRoute);
 route.use('/plan', planRoute);
@@ -17,6 +18,7 @@ route.use('/video', videoRoute);
 route.use('/question', questionRoute);
 route.use('/category', categoryRoute);
 route.use('/setting', settingRoute);
+route.use('/other', otherRoute);
 
 route.use('/', adminRoute);
 

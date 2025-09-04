@@ -55,13 +55,14 @@ const upload = require('../../../middleware/multer.js');
  *                 example: "A 20-minute yoga routine for beginners."
  *               type:
  *                 type: integer
- *                 enum: [1, 2, 3, 4]
+ *                 enum: [1, 2, 3, 4 ,5]
  *                 example: 1
  *                 description: |
  *                   1 = Day wise video (day required)
  *                   2 = Webinar/Live video
  *                   3 = Testimonial video
  *                   4 = Testimonial video (category required)
+ *                   5 = Setting video
  *               day:
  *                 type: integer
  *                 example: 1
