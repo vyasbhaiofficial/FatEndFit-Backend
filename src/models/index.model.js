@@ -12,5 +12,6 @@ db.UserVideoProgress = require('../models/userVideoProgress.model.js');
 db.Setting = require('../models/setting.model.js');
 db.Category = require('../models/category.model.js');
 db.Reference = require('../models/reference.model.js');
+db.Command = require('../models/command.model.js');
 
 module.exports = { db };

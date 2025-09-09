@@ -92,7 +92,13 @@ const MESSAGES = {
     //reference
     7001: 'Reference created successfully',
     7002: 'References fetched successfully',
-    7003: 'Reference already exists with this mobile'
+    7003: 'Reference already exists with this mobile',
+
+    //command
+    4355: 'Command created successfully',
+    4356: 'Command not found',
+    4357: 'Command updated successfully'
+
 };
 
 const get_message = message_code => {

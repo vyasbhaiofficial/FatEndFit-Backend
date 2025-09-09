@@ -17,7 +17,7 @@ exports.user_auth = async (req, res, next) => {
         const currentPath = req.path || '';
         const roleRouteAccess = {
             admin: ['/admin', '/admin-agency', '/agency'],
-            agency: ['/admin-agency', '/agency'],
+            subadmin: ['/admin', '/admin-agency', '/agency'],
             user: ['/user', '/common', '/host']
         };
         const token = authHeader.split(' ')[1];
@@ -43,7 +43,7 @@ exports.user_auth = async (req, res, next) => {
                 req.user = decoded;
                 req.user.planCurrentDay = user.planCurrentDay;
                 next();
-            } else if (decoded.role == 'admin') {
+            } else if (decoded.role == 'admin' || decoded.role == 'subadmin') {
                 const admin = await db.Admin.findById(decoded.id);
                 if (!admin) {
                     return RESPONSE.error(res, 500, 2003, null);
