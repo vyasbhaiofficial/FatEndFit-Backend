@@ -88,6 +88,8 @@ const userController = require('../../controllers/user.controller.js');
 
 route.post('/add', userController.addUser);
 
+route.get('/get', userController.getAllUsers);
+
 // update user
 /**
  * @swagger

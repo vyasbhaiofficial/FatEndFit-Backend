@@ -75,11 +75,21 @@ exports.addUser = async (req, res) => {
     }
 };
 
+//get All user in admin
+exports.getAllUsers = async (req, res) => {
+    try {
+        const users = await db.User.find({ isDeleted: false });
+        return RESPONSE.success(res, 200, 1001, users);
+    } catch (err) {
+        return RESPONSE.error(res, 500, 9999, err.message);
+    }
+};
+
 // update user by admin
 exports.updateUserByAdmin = async (req, res) => {
     try {
         const { userId } = req.params;
-        const { name, mobilePrefix, mobileNumber, branchId, planId } = req.body;
+        const { name, mobilePrefix, mobileNumber, branchId, planId, isDeleted } = req.body;
 
         const [existingUser, branch, plan, user] = await Promise.all([
             db.User.exists({ mobileNumber, _id: { $ne: userId } }),
@@ -99,8 +109,9 @@ exports.updateUserByAdmin = async (req, res) => {
         if (name) user.name = name;
         if (mobilePrefix) user.mobilePrefix = mobilePrefix;
         if (mobileNumber) user.mobileNumber = mobileNumber;
-        if (branchId) user.branch = branchId;
+        if (branchId) user.branch = branchId;   
         if (planId) user.plan = planId;
+        if (isDeleted !== undefined) user.isDeleted = isDeleted;
         await user.save();
 
         return RESPONSE.success(res, 200, 1001, user);
@@ -174,6 +185,7 @@ exports.getFirstPageDayWiseProgress = async (req, res) => {
         const userId = req.user.id;
         const user = await db.User.findOne({ _id: userId }).select('planCurrentDay planHoldDate');
         const maxDay = parseInt(user.planCurrentDay);
+        console.log('maxDay--------------------', maxDay);
         let videoProgress = await db.Video.aggregate([
             {
                 $match: {
@@ -289,7 +301,6 @@ exports.updateFcmToken = async (req, res) => {
     }
 };
 
-
 exports.refreshToken = async (req, res) => {
     try {
         const { refreshToken } = req.body;
@@ -299,51 +310,44 @@ exports.refreshToken = async (req, res) => {
 
         const user = await db.User.findOne({ refreshToken, isDeleted: false });
         if (!user) {
-            return RESPONSE.error(res, 403,3001);
+            return RESPONSE.error(res, 403, 3001);
         }
         if (user.isBlocked) {
             return RESPONSE.error(res, 403, 3004);
         }
 
         jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET, async (err, decoded) => {
-            if (err && err.name === "TokenExpiredError") {
-                const newRefreshToken = jwt.sign(
-                    { id: user._id },
-                    process.env.JWT_REFRESH_SECRET,
-                    { expiresIn: "7d" }
-                );
+            if (err && err.name === 'TokenExpiredError') {
+                const newRefreshToken = jwt.sign({ id: user._id }, process.env.JWT_REFRESH_SECRET, { expiresIn: '7d' });
                 const newAccessToken = jwt.sign(
-                    { id: user._id, mobileNumber: user.mobileNumber, role: "user" },
+                    { id: user._id, mobileNumber: user.mobileNumber, role: 'user' },
                     process.env.JWT_SECRET,
-                    { expiresIn: "15m" }
+                    { expiresIn: '15m' }
                 );
                 user.refreshToken = newRefreshToken;
                 await user.save();
 
                 return RESPONSE.success(res, 200, 1002, {
                     accessToken: newAccessToken,
-                    refreshToken: newRefreshToken,
+                    refreshToken: newRefreshToken
                 });
             }
 
             if (!err) {
                 const newAccessToken = jwt.sign(
-                    { id: user._id, mobileNumber: user.mobileNumber, role: "user" },
+                    { id: user._id, mobileNumber: user.mobileNumber, role: 'user' },
                     process.env.JWT_SECRET,
-                    { expiresIn: "15m" }
+                    { expiresIn: '15m' }
                 );
 
                 return RESPONSE.success(res, 200, 1002, {
                     accessToken: newAccessToken,
-                    refreshToken, 
+                    refreshToken
                 });
             }
-            return RESPONSE.error(res, 403, 2002, "Invalid refresh token");
+            return RESPONSE.error(res, 403, 2002, 'Invalid refresh token');
         });
-
     } catch (err) {
         return RESPONSE.error(res, 500, 9999, err.message);
     }
 };
-
-

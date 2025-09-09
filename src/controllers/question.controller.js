@@ -24,13 +24,14 @@ exports.createQuestionByVideoId = async (req, res) => {
 exports.createQuestionDaily = async (req, res) => {
     try {
         const { questionText, section } = req.body;
+        console.log('section----------------------------', req.body);
 
         const question = await db.Question.create({
             questionText,
             section: section || 'first',
             type: 2,
-            userAnswer
         });
+        console.log('question------------------------------', question);
 
         return RESPONSE.success(res, 201, 8001, question);
     } catch (err) {
