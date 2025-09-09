@@ -64,7 +64,7 @@ exports.submitDailyReport = async (req, res) => {
         const { day } = req.query; // @todo swagger
 
         const userId = req.user?.id;
-        const userAnswer = await db.UserAnswer.findOne({ user: userId, day }).sort({ createdAt: -1 });
+        let userAnswer = await db.UserAnswer.findOne({ user: userId, day }).sort({ createdAt: -1 });
 
         // here now i need direct save only question and answer no score and isCorrect save
         const checkedAnswers = answers.map(a => {
