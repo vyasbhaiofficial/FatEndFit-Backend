@@ -31,7 +31,7 @@ const userSchema = new mongoose.Schema(
         appReferer: { type: String, default: '' },
         plan: { type: mongoose.Schema.Types.ObjectId, ref: 'Plan' },
         branch: { type: mongoose.Schema.Types.ObjectId, ref: 'Branch' },
-        planCurrentDay: { type: Number, default:0 }, // 0 , 1 , 2
+        planCurrentDay: { type: Number, default: 0 }, // 0 , 1 , 2
         planCurrentDate: { type: String, default: null }, //  const now = new Date();  const date = now.toISOString().split('T')[0];  // 2025-06-23
         planHoldDate: { type: String, default: null }, // 2025-06-23 // hold ni api ma update
         planResumeDate: { type: String, default: null }, // 2025-06-23  // check if planCurrentDate == planResumeDate to kai nai , nahitar planCurrentDay += 1 , planCurrentDate UPDATE & planHoldDate == null
@@ -39,8 +39,7 @@ const userSchema = new mongoose.Schema(
         isDeleted: { type: Boolean, default: false },
         isBlocked: { type: Boolean, default: false },
         isProfileUpdated: { type: Boolean, default: false },
-        refreshToken : { type: String },
-
+        refreshToken: { type: String }
     },
     { timestamps: true, versionKey: false }
 );

@@ -11,7 +11,9 @@ const adminSchema = new mongoose.Schema(
         branch: {
             type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Branch' }],
             default: []
-        }
+        },
+        resetPasswordToken: { type: String, default: null },
+        resetPasswordExpiresAt: { type: Date, default: null }
     },
     { timestamps: true, versionKey: false }
 );

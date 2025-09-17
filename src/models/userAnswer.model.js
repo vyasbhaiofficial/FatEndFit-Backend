@@ -7,7 +7,7 @@ const userAnswerSchema = new mongoose.Schema(
         day: { type: Number },
         answers: [
             {
-                questionId: { type: mongoose.Schema.Types.ObjectId, required: true },
+                questionId: { type: mongoose.Schema.Types.ObjectId, ref: 'Question', required: true },
                 answer: { type: String, required: true }, // User's Yes/No choice
                 isCorrect: { type: Boolean, required: true, default: false } // Auto-calc at submit
             }

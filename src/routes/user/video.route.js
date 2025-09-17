@@ -16,7 +16,8 @@ const videoController = require('../../controllers/video.controller.js');
  *   get:
  *     summary: Get all videos by user with progress
  *     description: Fetch all videos for the logged-in user and include their video progress if available.
- *     tags: [Videos]
+ *       Language is automatically selected from the user's profile. Default fallback is english.
+ *     tags: [Video]
  *     security:
  *       - bearerAuth: []
  *     parameters:

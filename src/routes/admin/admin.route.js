@@ -67,6 +67,23 @@ const upload = require('../../../middleware/multer.js');
 
 route.put('/update', upload.single('image'), adminController.updateAdmin);
 
+/**
+ * @swagger
+ * /admin/get-profile:
+ *   get:
+ *     summary: Get admin profile
+ *     tags:
+ *       - Admin
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Admin profile details
+ *       500:
+ *         description: Server error
+ */
+route.get('/get-profile', adminController.getAdminAndSubadminProfile);
+
 // Sub Admin management
 /**
  * @swagger
@@ -176,4 +193,198 @@ route.get('/sub-admin', subAdminController.listSubAdmins);
  *         description: Sub Admin not found
  */
 route.put('/sub-admin/:id', upload.single('image'), subAdminController.updateSubAdminByAdmin);
+
+/**
+ * @swagger
+ * /admin/user-overview/{userId}:
+ *   get:
+ *     summary: Get consolidated user info, progress, daily reports, and plan history
+ *     tags: [User]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         schema:
+ *           type: string
+ *         required: true
+ *     responses:
+ *       200:
+ *         description: User overview data
+ */
+route.get('/user-overview/:userId', adminController.getUserOverview);
+
+/**
+ * @swagger
+ * /admin/user/{userId}/plan/hold:
+ *   post:
+ *     summary: Hold a user's plan (Admin/Subadmin)
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: "64dc9f07a12b3f001e5c9d1a"
+ *         description: User ID whose plan needs to be held
+ *     responses:
+ *       200:
+ *         description: Plan held successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Plan held successfully"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     user:
+ *                       type: object
+ *                       properties:
+ *                         id:
+ *                           type: string
+ *                         name:
+ *                           type: string
+ *                         plan:
+ *                           type: object
+ *                         planHoldDate:
+ *                           type: string
+ *                         planCurrentDay:
+ *                           type: number
+ *       400:
+ *         description: Plan already on hold or user has no active plan
+ *       403:
+ *         description: Not authorized to hold plan for this user
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Server error
+ */
+route.post('/user/:userId/plan/hold', adminController.adminHoldUserPlan);
+
+/**
+ * @swagger
+ * /admin/user/{userId}/plan/resume:
+ *   post:
+ *     summary: Resume a user's plan (Admin/Subadmin)
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: "64dc9f07a12b3f001e5c9d1a"
+ *         description: User ID whose plan needs to be resumed
+ *     responses:
+ *       200:
+ *         description: Plan resumed successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Plan resumed successfully"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     user:
+ *                       type: object
+ *                       properties:
+ *                         id:
+ *                           type: string
+ *                         name:
+ *                           type: string
+ *                         plan:
+ *                           type: object
+ *                         planResumeDate:
+ *                           type: string
+ *                         planCurrentDay:
+ *                           type: number
+ *                         planCurrentDate:
+ *                           type: string
+ *       400:
+ *         description: Plan is not on hold or user has no active plan
+ *       403:
+ *         description: Not authorized to resume plan for this user
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Server error
+ */
+route.post('/user/:userId/plan/resume', adminController.adminResumeUserPlan);
+
+/**
+ * @swagger
+ * /admin/user/{userId}/plan/status:
+ *   get:
+ *     summary: Get user plan status (Admin/Subadmin)
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: "64dc9f07a12b3f001e5c9d1a"
+ *         description: User ID to get plan status for
+ *     responses:
+ *       200:
+ *         description: User plan status retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     userId:
+ *                       type: string
+ *                     name:
+ *                       type: string
+ *                     plan:
+ *                       type: object
+ *                     planCurrentDay:
+ *                       type: number
+ *                     planCurrentDate:
+ *                       type: string
+ *                     planHoldDate:
+ *                       type: string
+ *                     planResumeDate:
+ *                       type: string
+ *                     isOnHold:
+ *                       type: boolean
+ *                     isActive:
+ *                       type: boolean
+ *       403:
+ *         description: Not authorized to view this user
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Server error
+ */
+route.get('/user/:userId/plan/status', adminController.getUserPlanStatus);
+
 module.exports = route;

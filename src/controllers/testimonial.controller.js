@@ -1,8 +1,12 @@
 const { db } = require('../models/index.model.js');
 const RESPONSE = require('../../utils/response.js');
+const { getTextInLanguage } = require('../../utils/languageHelper.js');
 
 exports.getAllTestimonials = async (req, res) => {
     try {
+        const role = req.role;
+        const language = role === 'user' ? req.preferredLanguage || 'english' : req.query.language || 'english';
+
         // Type 3: Testimonial videos
         const type3Videos = await db.Video.findOne({ type: 3, isDeleted: false });
 
@@ -24,24 +28,24 @@ exports.getAllTestimonials = async (req, res) => {
             }
 
             categoryMap[catId].list.push({
-                title: video.title,
-                dec: video.description,
-                thubnail: video.thumbnail,
+                title: getTextInLanguage(video.title, language),
+                dec: getTextInLanguage(video.description, language),
+                thubnail: getTextInLanguage(video.thumbnail, language),
                 videoid: video._id,
-                videoUrl: video.video
+                videoUrl: getTextInLanguage(video.video, language)
             });
         });
 
-         const response = {
-            title: type3Videos.title,
-            thumUrl: type3Videos.thumbnail,
-            urlVideo: type3Videos.video,
+        const response = {
+            title: type3Videos ? getTextInLanguage(type3Videos.title, language) : '',
+            thumUrl: type3Videos ? getTextInLanguage(type3Videos.thumbnail, language) : '',
+            urlVideo: type3Videos ? getTextInLanguage(type3Videos.video, language) : '',
             category: Object.values(categoryMap)
         };
 
-        res.status(200).json(response);
+        return RESPONSE.success(res, 200, 9001, response);
     } catch (err) {
         console.error(err);
-        res.status(500).json({ message: 'Server Error' });
+        return RESPONSE.error(res, 500, 9999, err.message);
     }
 };
