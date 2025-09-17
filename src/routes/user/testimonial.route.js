@@ -7,6 +7,7 @@ const questionController = require('../../controllers/testimonial.controller.js'
  * /user/testimonial/get-testimonial:
  *   get:
  *     summary: Get all testimonial (type 3) and category-wise (type 4) videos
+ *     description: Language is automatically selected from the user's profile. Default fallback is english.
  *     tags:
  *       - Testimonial
  *     security:

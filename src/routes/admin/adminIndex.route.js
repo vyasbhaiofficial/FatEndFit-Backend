@@ -21,7 +21,6 @@ route.use('/category', categoryRoute);
 route.use('/setting', settingRoute);
 route.use('/other', otherRoute);
 route.use('/command', commandRoute);
-
 route.use('/', adminRoute);
 
 module.exports = route;

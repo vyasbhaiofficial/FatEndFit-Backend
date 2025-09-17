@@ -180,4 +180,99 @@ route.put('/update/:branchId', branchController.updateBranch);
 
 route.delete('/:branchId', branchController.deleteBranch);
 
+/**
+ * @swagger
+ * /admin/branch/{branchId}:
+ *   get:
+ *     summary: Get all users of a branch
+ *     description: Fetch all users linked to a specific branch (excluding deleted ones).
+ *     tags:
+ *       - Branch
+ *     security:
+ *       - bearerAuth: []   # <--- security added
+ *     parameters:
+ *       - in: path
+ *         name: branchId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Branch ID
+ *     responses:
+ *       200:
+ *         description: Successfully fetched users of the branch
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 code:
+ *                   type: integer
+ *                   example: 4008
+ *                 message:
+ *                   type: string
+ *                   example: Users fetched successfully
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       _id:
+ *                         type: string
+ *                         example: "66d123abc456..."
+ *                       name:
+ *                         type: string
+ *                         example: "Rahul Sharma"
+ *                       email:
+ *                         type: string
+ *                         example: "rahul@test.com"
+ *                       mobilePrefix:
+ *                         type: string
+ *                         example: "+91"
+ *                       mobileNumber:
+ *                         type: string
+ *                         example: "9876543210"
+ *                       branchId:
+ *                         type: object
+ *                         properties:
+ *                           _id:
+ *                             type: string
+ *                             example: "66cabc123..."
+ *                           name:
+ *                             type: string
+ *                             example: "Delhi Branch"
+ *                           city:
+ *                             type: string
+ *                             example: "Delhi"
+ *                       planId:
+ *                         type: object
+ *                         properties:
+ *                           _id:
+ *                             type: string
+ *                             example: "66dplan456..."
+ *                           name:
+ *                             type: string
+ *                             example: "Gold Plan"
+ *                           price:
+ *                             type: number
+ *                             example: 499
+ *       404:
+ *         description: Branch not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: Branch not found
+ *       500:
+ *         description: Internal server error
+ */
+route.get('/:branchId', branchController.getBranchwiseUser);
 module.exports = route;
