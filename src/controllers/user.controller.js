@@ -58,6 +58,18 @@ exports.addUser = async (req, res) => {
             return RESPONSE.error(res, 404, 3003);
         }
 
+        // Sub Admins can only add users to their assigned branches
+        if (req.role === 'subadmin') {
+            const adminDoc = await db.Admin.findById(req.admin?.id).select('branch');
+            if (!adminDoc) {
+                return RESPONSE.error(res, 403, 2003);
+            }
+            const allowedBranchIds = (adminDoc.branch || []).map(id => String(id));
+            if (!allowedBranchIds.includes(String(branchId))) {
+                return RESPONSE.error(res, 403, 4444, 'Not allowed to add user in this branch');
+            }
+        }
+
         const user = await db.User.create({
             name,
             mobilePrefix,
@@ -66,7 +78,12 @@ exports.addUser = async (req, res) => {
             plan: planId,
             patientId: await generatePatientId()
         });
-        // @todo plan assign history
+
+        await db.History.create({
+            user: user._id,
+            plan: planId,
+            type: 1
+        });
 
         return RESPONSE.success(res, 201, 1001, user);
     } catch (err) {
@@ -78,7 +95,16 @@ exports.addUser = async (req, res) => {
 //get All user in admin
 exports.getAllUsers = async (req, res) => {
     try {
-        const users = await db.User.find({ isDeleted: false });
+        let filter = { isDeleted: false };
+        if (req.role === 'subadmin') {
+            const adminDoc = await db.Admin.findById(req.admin?.id).select('branch');
+            if (!adminDoc) {
+                return RESPONSE.error(res, 403, 2003);
+            }
+            const allowedBranchIds = adminDoc.branch || [];
+            filter.branch = { $in: allowedBranchIds };
+        }
+        const users = await db.User.find(filter).populate('branch', 'name').populate('plan', 'name');
         return RESPONSE.success(res, 200, 1001, users);
     } catch (err) {
         return RESPONSE.error(res, 500, 9999, err.message);
@@ -106,13 +132,32 @@ exports.updateUserByAdmin = async (req, res) => {
         if (!user) {
             return RESPONSE.error(res, 404, 3001);
         }
+        // Sub Admins can only update users within their assigned branches
+        if (req.role === 'subadmin') {
+            const adminDoc = await db.Admin.findById(req.admin?.id).select('branch');
+            if (!adminDoc) {
+                return RESPONSE.error(res, 403, 2003);
+            }
+            const allowedBranchIds = (adminDoc.branch || []).map(id => String(id));
+            if (branchId && !allowedBranchIds.includes(String(branchId))) {
+                return RESPONSE.error(res, 403, 4444, 'Not allowed to assign this branch');
+            }
+            if (!branchId && user.branch && !allowedBranchIds.includes(String(user.branch))) {
+                return RESPONSE.error(res, 403, 4444, 'Not allowed to update user outside your branches');
+            }
+        }
         if (name) user.name = name;
         if (mobilePrefix) user.mobilePrefix = mobilePrefix;
         if (mobileNumber) user.mobileNumber = mobileNumber;
-        if (branchId) user.branch = branchId;   
+        if (branchId) user.branch = branchId;
         if (planId) user.plan = planId;
         if (isDeleted !== undefined) user.isDeleted = isDeleted;
         await user.save();
+        await db.History.create({
+            user: userId,
+            plan: planId,
+            type: 1
+        });
 
         return RESPONSE.success(res, 200, 1001, user);
     } catch (err) {
@@ -270,9 +315,21 @@ exports.getFirstPageDayWiseProgress = async (req, res) => {
         }));
 
         // 3) Merge aggregation results into fullDays
+        // localize firstThumbnail by user preferred language
+        const userPreferredLanguage = req.preferredLanguage || 'english';
         const progress = fullDays.map(d => {
             const found = videoProgress.find(p => p.day === d.day);
-            return found ? found : d;
+            if (!found) return d;
+            let localizedThumb = found.firstThumbnail;
+            if (localizedThumb && typeof localizedThumb === 'object') {
+                localizedThumb =
+                    localizedThumb[userPreferredLanguage] ||
+                    localizedThumb.english ||
+                    localizedThumb.hindi ||
+                    localizedThumb.gujarati ||
+                    null;
+            }
+            return { ...found, firstThumbnail: localizedThumb };
         });
 
         return RESPONSE.success(res, 200, 1001, {

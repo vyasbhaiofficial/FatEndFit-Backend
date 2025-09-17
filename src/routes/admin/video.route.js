@@ -25,18 +25,44 @@ const upload = require('../../../middleware/multer.js');
  *           schema:
  *             type: object
  *             properties:
- *               title:
+ *               title_english:
  *                 type: string
  *                 example: "Morning Yoga Session"
+ *                 description: Video title in English
+ *               title_gujarati:
+ *                 type: string
+ *                 example: "સવારની યોગ સત્ર"
+ *                 description: Video title in Gujarati
+ *               title_hindi:
+ *                 type: string
+ *                 example: "सुबह की योग सत्र"
+ *                 description: Video title in Hindi
  *               videoType:
  *                 type: integer
  *                 enum: [1, 2]
  *                 example: 1
  *                 description: 1 = File Upload, 2 = URL
- *               video:
+ *               video_english:
  *                 type: string
  *                 format: binary
- *                 description: Required if videoType = 1
+ *                 description: English video file (required if videoType = 1)
+ *               video_gujarati:
+ *                 type: string
+ *                 format: binary
+ *                 description: Gujarati video file (required if videoType = 1)
+ *               video_hindi:
+ *                 type: string
+ *                 format: binary
+ *                 description: Hindi video file (required if videoType = 1)
+ *               video_english_url:
+ *                 type: string
+ *                 description: English video URL (required if videoType = 2)
+ *               video_gujarati_url:
+ *                 type: string
+ *                 description: Gujarati video URL (required if videoType = 2)
+ *               video_hindi_url:
+ *                 type: string
+ *                 description: Hindi video URL (required if videoType = 2)
  *               videoSecond:
  *                 type: number
  *                 example: 120
@@ -46,13 +72,39 @@ const upload = require('../../../middleware/multer.js');
  *                 enum: [1, 2]
  *                 example: 1
  *                 description: 1 = File Upload, 2 = URL
- *               thumbnail:
+ *               thumbnail_english:
  *                 type: string
  *                 format: binary
- *                 description: Required if thumbnailType = 1
- *               description:
+ *                 description: English thumbnail file (required if thumbnailType = 1)
+ *               thumbnail_gujarati:
+ *                 type: string
+ *                 format: binary
+ *                 description: Gujarati thumbnail file (required if thumbnailType = 1)
+ *               thumbnail_hindi:
+ *                 type: string
+ *                 format: binary
+ *                 description: Hindi thumbnail file (required if thumbnailType = 1)
+ *               thumbnail_english_url:
+ *                 type: string
+ *                 description: English thumbnail URL (required if thumbnailType = 2)
+ *               thumbnail_gujarati_url:
+ *                 type: string
+ *                 description: Gujarati thumbnail URL (required if thumbnailType = 2)
+ *               thumbnail_hindi_url:
+ *                 type: string
+ *                 description: Hindi thumbnail URL (required if thumbnailType = 2)
+ *               description_english:
  *                 type: string
  *                 example: "A 20-minute yoga routine for beginners."
+ *                 description: Video description in English
+ *               description_gujarati:
+ *                 type: string
+ *                 example: "શરૂઆત કરનારાઓ માટે 20 મિનિટની યોગ રૂટિન."
+ *                 description: Video description in Gujarati
+ *               description_hindi:
+ *                 type: string
+ *                 example: "शुरुआती लोगों के लिए 20 मिनट का योग रूटीन।"
+ *                 description: Video description in Hindi
  *               type:
  *                 type: integer
  *                 enum: [1, 2, 3, 4 ,5]
@@ -85,8 +137,12 @@ const upload = require('../../../middleware/multer.js');
 route.post(
     '/create',
     upload.fields([
-        { name: 'video', maxCount: 1 },
-        { name: 'thumbnail', maxCount: 1 }
+        { name: 'video_english', maxCount: 1 },
+        { name: 'video_gujarati', maxCount: 1 },
+        { name: 'video_hindi', maxCount: 1 },
+        { name: 'thumbnail_english', maxCount: 1 },
+        { name: 'thumbnail_gujarati', maxCount: 1 },
+        { name: 'thumbnail_hindi', maxCount: 1 }
     ]),
     videoController.createVideo
 );
@@ -116,6 +172,14 @@ route.post(
  *           type: integer
  *         required: false
  *         description: Pagination limit
+ *       - in: query
+ *         name: language
+ *         schema:
+ *           type: string
+ *           enum: [english, gujarati, hindi]
+ *           default: english
+ *         required: false
+ *         description: Language for video content (english, gujarati, hindi)
  *     responses:
  *       200:
  *         description: List of videos
@@ -218,8 +282,12 @@ route.get('/byId/:videoId', videoController.getVideoById);
 route.put(
     '/update/:videoId',
     upload.fields([
-        { name: 'video', maxCount: 1 },
-        { name: 'thumbnail', maxCount: 1 }
+        { name: 'video_english', maxCount: 1 },
+        { name: 'video_gujarati', maxCount: 1 },
+        { name: 'video_hindi', maxCount: 1 },
+        { name: 'thumbnail_english', maxCount: 1 },
+        { name: 'thumbnail_gujarati', maxCount: 1 },
+        { name: 'thumbnail_hindi', maxCount: 1 }
     ]),
     videoController.updateVideo
 );

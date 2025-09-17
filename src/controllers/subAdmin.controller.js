@@ -103,3 +103,4 @@ exports.updateSubAdminByAdmin = async (req, res) => {
         return RESPONSE.error(res, 500, 9999, err.message);
     }
 };
+

@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const RESPONSE = require('../../utils/response.js');
+const { isValidLanguage, getDefaultLanguage } = require('../../utils/languageHelper.js');
 const { db } = require('../../src/models/index.model.js');
 
 exports.user_auth = async (req, res, next) => {
@@ -42,6 +43,10 @@ exports.user_auth = async (req, res, next) => {
                 }
                 req.user = decoded;
                 req.user.planCurrentDay = user.planCurrentDay;
+                // attach preferred language from user profile (fallback to default)
+                const userLanguage = (user.language || '').toString().toLowerCase();
+                req.preferredLanguage = isValidLanguage(userLanguage) ? userLanguage : getDefaultLanguage();
+                console.log('req.preferredLanguage', req.preferredLanguage);
                 next();
             } else if (decoded.role == 'admin' || decoded.role == 'subadmin') {
                 const admin = await db.Admin.findById(decoded.id);

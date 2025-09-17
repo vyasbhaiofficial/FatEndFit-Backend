@@ -108,4 +108,62 @@ route.post('/signup', adminController.adminSignup);
  */
 route.post('/login', adminController.adminLogin);
 
+/**
+ * @swagger
+ * /auth/admin/forgot-password:
+ *   post:
+ *     summary: Request password reset link for admin
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *     responses:
+ *       200:
+ *         description: Reset link sent if email exists
+ *       400:
+ *         description: Email required
+ */
+route.post('/forgot-password', adminController.adminForgotPassword);
+
+/**
+ * @swagger
+ * /auth/admin/reset-password:
+ *   post:
+ *     summary: Reset admin password using token
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - token
+ *               - email
+ *               - password
+ *             properties:
+ *               token:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               password:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Password updated successfully
+ *       400:
+ *         description: Invalid or expired token
+ */
+route.post('/reset-password', adminController.adminResetPassword);
+
 module.exports = route;

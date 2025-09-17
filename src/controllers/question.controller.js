@@ -1,16 +1,23 @@
 const { db } = require('../models/index.model.js');
 const RESPONSE = require('../../utils/response.js');
 const { pagination } = require('../../utils/function.js');
+const { validateQuestionMultiLanguage, getTextInLanguage } = require('../../utils/languageHelper.js');
 
 // Create Question
 exports.createQuestionByVideoId = async (req, res) => {
     try {
-        const { videoId, questionText, correctAnswer } = req.body;
+        const { videoId } = req.body;
+
+        // Validate multi-language data
+        const validation = validateQuestionMultiLanguage(req.body);
+        if (!validation.isValid) {
+            return RESPONSE.error(res, 400, 8007, validation.errors.join(', '));
+        }
 
         const question = await db.Question.create({
             videoId,
-            questionText,
-            correctAnswer,
+            questionText: validation.data.questionText,
+            correctAnswer: validation.data.correctAnswer,
             type: 1
         });
 
@@ -23,15 +30,20 @@ exports.createQuestionByVideoId = async (req, res) => {
 // Create Question daily
 exports.createQuestionDaily = async (req, res) => {
     try {
-        const { questionText, section } = req.body;
-        console.log('section----------------------------', req.body);
+        const { section } = req.body;
+
+        // Validate multi-language data
+        const validation = validateQuestionMultiLanguage(req.body);
+        if (!validation.isValid) {
+            return RESPONSE.error(res, 400, 8007, validation.errors.join(', '));
+        }
 
         const question = await db.Question.create({
-            questionText,
+            questionText: validation.data.questionText,
+            correctAnswer: validation.data.correctAnswer,
             section: section || 'first',
-            type: 2,
+            type: 2
         });
-        console.log('question------------------------------', question);
 
         return RESPONSE.success(res, 201, 8001, question);
     } catch (err) {
@@ -43,8 +55,76 @@ exports.createQuestionDaily = async (req, res) => {
 exports.getAllQuestionsByVideoId = async (req, res) => {
     try {
         const { videoId } = req.query;
+        const language = req.role === 'user' ? req.preferredLanguage || 'english' : req.query.language || 'english';
+        const role = req.role;
         const questions = await db.Question.find({ videoId }).sort({ createdAt: -1 });
-        return RESPONSE.success(res, 200, 8002, questions);
+
+        // Transform questions to include language-specific content
+        const transformedQuestions = questions.map(question => ({
+            ...question.toObject(),
+            questionText: getTextInLanguage(question.questionText, language),
+            correctAnswer: getTextInLanguage(question.correctAnswer, language),
+            // Keep original multi-language data for admin
+            ...(role === 'admin' || role === 'subadmin'
+                ? {
+                      questionTextMultiLang: question.questionText,
+                      correctAnswerMultiLang: question.correctAnswer
+                  }
+                : {})
+        }));
+
+        return RESPONSE.success(res, 200, 8002, transformedQuestions);
+    } catch (err) {
+        return RESPONSE.error(res, 500, 9999, err.message);
+    }
+};
+
+// Get All Questions (Admin only)
+exports.getAllQuestions = async (req, res) => {
+    try {
+        const { type, section, videoId, page = 1, limit = 10 } = req.query;
+        const language = req.role === 'user' ? req.preferredLanguage || 'english' : req.query.language || 'english';
+        const role = req.role;
+
+        // Build filter
+        let filter = {};
+        if (type) filter.type = Number(type);
+        if (section) filter.section = section;
+
+        // If type is video (1) and videoId is provided, filter by videoId
+        if (type && Number(type) === 1 && videoId) {
+            filter.videoId = videoId;
+        }
+
+        // Calculate pagination
+        const skip = (Number(page) - 1) * Number(limit);
+
+        const questions = await db.Question.find(filter)
+            .populate('videoId', 'title day type')
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(Number(limit));
+
+        const totalQuestions = await db.Question.countDocuments(filter);
+
+        // Transform questions to include language-specific content
+        const transformedQuestions = questions.map(question => ({
+            ...question.toObject(),
+            questionText: getTextInLanguage(question.questionText, language),
+            correctAnswer: getTextInLanguage(question.correctAnswer, language),
+            // Keep original multi-language data for admin
+            ...(role === 'admin' || role === 'subadmin'
+                ? {
+                      questionTextMultiLang: question.questionText,
+                      correctAnswerMultiLang: question.correctAnswer
+                  }
+                : {})
+        }));
+
+        return RESPONSE.success(res, 200, 8002, {
+            questions: transformedQuestions,
+            pagination: pagination({ start: page, limit: limit, role })
+        });
     } catch (err) {
         return RESPONSE.error(res, 500, 9999, err.message);
     }
@@ -54,10 +134,30 @@ exports.getAllQuestionsByVideoId = async (req, res) => {
 exports.getAllQuestionsDailyRoutine = async (req, res) => {
     try {
         const { role } = req;
-        const { day } = req.query; // @todo swagger
+        const { day } = req.query;
+        const language = req.role === 'user' ? req.preferredLanguage || 'english' : req.query.language || 'english';
 
         let firstQuestions = await db.Question.find({ type: 2, section: 'first' }).sort({ createdAt: 1 }).lean();
         let lastQuestions = await db.Question.find({ type: 2, section: 'second' }).sort({ createdAt: 1 }).lean();
+
+        // Transform questions to include language-specific content
+        const transformQuestions = questions => {
+            return questions.map(q => ({
+                ...q,
+                questionText: getTextInLanguage(q.questionText, language),
+                correctAnswer: getTextInLanguage(q.correctAnswer, language),
+                // Keep original multi-language data for admin
+                ...(role === 'admin' || role === 'subadmin'
+                    ? {
+                          questionTextMultiLang: q.questionText,
+                          correctAnswerMultiLang: q.correctAnswer
+                      }
+                    : {})
+            }));
+        };
+
+        firstQuestions = transformQuestions(firstQuestions);
+        lastQuestions = transformQuestions(lastQuestions);
 
         if (role == 'user') {
             const { id: userId } = req.user;
@@ -106,17 +206,30 @@ exports.getAllQuestionsDailyRoutine = async (req, res) => {
 exports.updateQuestion = async (req, res) => {
     try {
         const { questionId } = req.params;
-        const { questionText, correctAnswer, videoId } = req.body;
+        const { videoId } = req.body;
 
         const question = await db.Question.findById(questionId);
 
         if (!question) {
             return RESPONSE.error(res, 404, 8003);
         }
-        question.questionText = questionText ? questionText : question.questionText;
+
+        // Check if multi-language data is being updated
+        const hasQuestionTextUpdate =
+            req.body.questionText_english || req.body.questionText_gujarati || req.body.questionText_hindi;
+        const hasCorrectAnswerUpdate =
+            req.body.correctAnswer_english || req.body.correctAnswer_gujarati || req.body.correctAnswer_hindi;
+
+        if (hasQuestionTextUpdate || hasCorrectAnswerUpdate) {
+            const validation = validateQuestionMultiLanguage(req.body);
+            if (!validation.isValid) {
+                return RESPONSE.error(res, 400, 8007, validation.errors.join(', '));
+            }
+            if (hasQuestionTextUpdate) question.questionText = validation.data.questionText;
+            if (hasCorrectAnswerUpdate) question.correctAnswer = validation.data.correctAnswer;
+        }
 
         if (question.type == 1 && videoId) {
-            question.correctAnswer = correctAnswer ? correctAnswer : question.correctAnswer;
             question.videoId = videoId;
         }
 

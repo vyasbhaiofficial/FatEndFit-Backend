@@ -31,7 +31,7 @@ exports.createBranch = async (req, res) => {
 
 exports.getAllBranches = async (req, res) => {
     try {
-        const branches = await db.Branch.find({ isDeleted: false });
+        const branches = await db.Branch.find({ isDeleted: false })
         return RESPONSE.success(res, 200, 4002, branches);
     } catch (err) {
         return RESPONSE.error(res, 500, 9999, err.message);
@@ -82,6 +82,21 @@ exports.deleteBranch = async (req, res) => {
         }
 
         return RESPONSE.success(res, 200, 4006);
+    } catch (err) {
+        return RESPONSE.error(res, 500, 9999, err.message);
+    }
+};
+
+//branchwise user get 
+exports.getBranchwiseUser = async (req, res) => {
+    try {
+        const { branchId } = req.params;
+        const branch = await db.Branch.findOne({ _id: branchId, isDeleted: false });  
+        if (!branch) {
+            return RESPONSE.error(res, 404, 4003);
+        }
+        const users = await db.User.find({ branch: branchId, isDeleted: false }).populate('branch', 'name').populate('plan', 'name');
+        return RESPONSE.success(res, 200, 4002, users);
     } catch (err) {
         return RESPONSE.error(res, 500, 9999, err.message);
     }

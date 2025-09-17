@@ -17,6 +17,7 @@ const questionController = require('../../controllers/question.controller.js');
  *         schema:
  *           type: string
  *         description: ID of the video
+ *     description: Language is automatically selected from the user's profile. Default fallback is english.
  *     responses:
  *       200:
  *         description: List of questions
@@ -41,6 +42,7 @@ route.get('/get', questionController.getAllQuestionsByVideoId);
  *           type: integer
  *         required: true
  *         description: Day number for which questions are fetched
+ *     description: Language is automatically selected from the user's profile. Default fallback is english.
  *     responses:
  *       200:
  *         description: Successfully retrieved daily routine questions

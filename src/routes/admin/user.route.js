@@ -176,4 +176,6 @@ route.get('/get', userController.getAllUsers);
 
 route.put('/update/:userId', userController.updateUserByAdmin);
 
+
+
 module.exports = route;
