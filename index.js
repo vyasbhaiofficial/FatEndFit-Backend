@@ -31,8 +31,7 @@ app.get('/', (req, res) => {
 const { db } = require('./src/models/index.model.js');
 
 // @todo check this will work right way or not
-//cron set i 5 minutes
-cron.schedule('*/5 * * * *', async () => {
+cron.schedule('0 0 * * *', async () => {
     // ✅ This runs once per day at 00:00 (midnight)
     console.log('Running cron job...');
 
