@@ -262,7 +262,14 @@ exports.getUserOverview = async (req, res) => {
             firstThumbnail: '',
             dayProgressPercent: 0
         }));
-        const progress = fullDays.map(d => videoProgress.find(p => p.day === d.day) || d);
+        const progress = fullDays.map(d => {
+            const found = videoProgress.find(p => p.day === d.day);
+            return {
+                day: found ? found.day : d.day,
+                firstThumbnail: found ? found.firstThumbnail : '',
+                dayProgressPercent: found ? found.dayProgressPercent : 0
+            };
+        });
 
         // 3) Daily question reports (by day with populated question data)
         const dailyReportsDocs = await db.UserAnswer.find({ user: userId })
@@ -272,30 +279,104 @@ exports.getUserOverview = async (req, res) => {
                 select: 'questionText correctAnswer type section'
             })
             .sort({ day: 1 });
+        // Get user's preferred language with better detection
+        const getUserLanguage = language => {
+            if (!language) return 'english';
+            const lang = language.toLowerCase();
+            if (lang === 'gujarati' || lang === 'guj') return 'gujarati';
+            if (lang === 'hindi' || lang === 'hin') return 'hindi';
+            return 'english'; // Default fallback
+        };
+
+        const userLanguage = getUserLanguage(user.language);
+
         const dailyReports = dailyReportsDocs.map(r => ({
             day: r.day,
-            answers: r.answers.map(a => ({
-                questionId: a.questionId?._id,
-                question: a.questionId?.questionText,
-                correctAnswer: a.questionId?.correctAnswer || '',
-                type: a.questionId?.type,
-                section: a.questionId?.section,
-                givenAnswer: a.answer
-            })),
+            answers: r.answers.map(a => {
+                // Get question and answer in user's preferred language
+                let questionText = '';
+                let correctAnswerText = '';
+
+                if (userLanguage === 'gujarati') {
+                    questionText = a.questionId?.questionText?.gujarati || '';
+                    correctAnswerText = a.questionId?.correctAnswer?.gujarati || '';
+                } else if (userLanguage === 'hindi') {
+                    questionText = a.questionId?.questionText?.hindi || '';
+                    correctAnswerText = a.questionId?.correctAnswer?.hindi || '';
+                } else {
+                    // Default to English
+                    questionText = a.questionId?.questionText?.english || '';
+                    correctAnswerText = a.questionId?.correctAnswer?.english || '';
+                }
+
+                return {
+                    questionId: a.questionId?._id,
+                    question: questionText,
+                    correctAnswer: correctAnswerText,
+                    type: a.questionId?.type,
+                    section: a.questionId?.section,
+                    givenAnswer: a.answer,
+                    language: userLanguage
+                };
+            }),
             submittedAt: r.createdAt
         }));
 
         // 4) Plan history (most recent first) + include plan name/days
-        const planHistory = await db.History.find({ user: userId, type: 1 })
+        const planHistoryDocs = await db.History.find({ user: userId, type: 1 })
             .populate('plan')
             .sort({ createdAt: -1 })
             .lean();
 
+        const planHistory = planHistoryDocs.map(history => ({
+            _id: history._id,
+            user: history.user,
+            plan: history.plan,
+            type: history.type,
+            createdAt: history.createdAt,
+            updatedAt: history.updatedAt
+        }));
+
+        // Format user data to ensure proper structure
+        const formattedUser = {
+            _id: user._id,
+            name: user.name,
+            surname: user.surname,
+            patientId: user.patientId,
+            mobilePrefix: user.mobilePrefix,
+            mobileNumber: user.mobileNumber,
+            gender: user.gender,
+            age: user.age,
+            height: user.height,
+            weight: user.weight,
+            language: user.language,
+            medicalDescription: user.medicalDescription,
+            image: user.image,
+            fcmToken: user.fcmToken,
+            city: user.city,
+            state: user.state,
+            country: user.country,
+            appReferer: user.appReferer,
+            plan: user.plan,
+            branch: user.branch,
+            planCurrentDay: user.planCurrentDay,
+            planCurrentDate: user.planCurrentDate,
+            planHoldDate: user.planHoldDate,
+            planResumeDate: user.planResumeDate,
+            activated: user.activated,
+            isDeleted: user.isDeleted,
+            isBlocked: user.isBlocked,
+            isProfileUpdated: user.isProfileUpdated,
+            createdAt: user.createdAt,
+            updatedAt: user.updatedAt
+        };
+
         return RESPONSE.success(res, 200, 1001, {
-            user,
+            user: formattedUser,
             progress,
             dailyReports,
-            planHistory
+            planHistory,
+            userLanguage: userLanguage // Include user's language for frontend reference
         });
     } catch (err) {
         return RESPONSE.error(res, 500, 9999, err.message);
