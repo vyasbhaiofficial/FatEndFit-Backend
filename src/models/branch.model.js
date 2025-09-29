@@ -20,8 +20,8 @@ const branchSchema = new mongoose.Schema(
                 message: props => `${props.value} is not a valid mobile number!`
             }
         },
-        latitude: { type: String, required: true },
-        longitude: { type: String, required: true },
+        latitude: { type: String },
+        longitude: { type: String },
         isDeleted: { type: Boolean, default: false }
     },
     { timestamps: true, versionKey: false }

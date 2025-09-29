@@ -86,21 +86,10 @@ route.post('/create-by-video', questionController.createQuestionByVideoId);
  *                 type: string
  *                 example: "क्या आप रोजाना योग करते हैं?"
  *                 description: Question text in Hindi
- *               correctAnswer_english:
- *                 type: string
- *                 example: "Yes"
- *                 description: Correct answer in English
- *               correctAnswer_gujarati:
- *                 type: string
- *                 example: "હા"
- *                 description: Correct answer in Gujarati
- *               correctAnswer_hindi:
- *                 type: string
- *                 example: "हाँ"
- *                 description: Correct answer in Hindi
  *               section:
  *                 type: string
  *                 example: first
+ *                 description: Section of the question (first/second)
  *     responses:
  *       201:
  *         description: Question created successfully

@@ -32,7 +32,7 @@ exports.createQuestionDaily = async (req, res) => {
     try {
         const { section } = req.body;
 
-        // Validate multi-language data
+        // Validate only question text (no correct answer needed for daily questions)
         const validation = validateQuestionMultiLanguage(req.body);
         if (!validation.isValid) {
             return RESPONSE.error(res, 400, 8007, validation.errors.join(', '));
@@ -40,7 +40,7 @@ exports.createQuestionDaily = async (req, res) => {
 
         const question = await db.Question.create({
             questionText: validation.data.questionText,
-            correctAnswer: validation.data.correctAnswer,
+            // No correctAnswer for daily questions
             section: section || 'first',
             type: 2
         });
@@ -145,12 +145,12 @@ exports.getAllQuestionsDailyRoutine = async (req, res) => {
             return questions.map(q => ({
                 ...q,
                 questionText: getTextInLanguage(q.questionText, language),
-                correctAnswer: getTextInLanguage(q.correctAnswer, language),
+                // For daily questions, don't show correct answer to anyone
                 // Keep original multi-language data for admin
                 ...(role === 'admin' || role === 'subadmin'
                     ? {
-                          questionTextMultiLang: q.questionText,
-                          correctAnswerMultiLang: q.correctAnswer
+                          questionTextMultiLang: q.questionText
+                          // No correctAnswerMultiLang for daily questions
                       }
                     : {})
             }));
