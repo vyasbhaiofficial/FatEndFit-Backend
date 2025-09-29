@@ -29,8 +29,6 @@ const branchController = require('../../controllers/branch.controller.js');
  *               - city
  *               - state
  *               - pincode
- *               - latitude
- *               - longitude
  *               - mobileNumber
  *             properties:
  *               name:
