@@ -413,18 +413,50 @@ exports.getAllVideosByUser = async (req, res) => {
                                 }
                             }
                         },
-                        { $project: { _id: 1 } }
+                        { $project: { answers: 1, _id: 1 } }
                     ],
-                    as: 'userAnswer'
+                    as: 'userAnswerData'
                 }
             },
             {
                 $addFields: {
                     userAnswer: {
                         $cond: [
-                            { $eq: [{ $size: '$userAnswer' }, 0] }, // if no answers found
+                            { $eq: [{ $size: '$userAnswerData' }, 0] }, // if no answers found
                             false,
                             true // → answered
+                        ]
+                    },
+                    answerStats: {
+                        $cond: [
+                            { $eq: [{ $size: '$userAnswerData' }, 0] }, // if no answers found
+                            { correctAnswers: 0, wrongAnswers: 0, totalAnswers: 0 },
+                            {
+                                $let: {
+                                    vars: {
+                                        answers: { $first: '$userAnswerData.answers' }
+                                    },
+                                    in: {
+                                        correctAnswers: {
+                                            $size: {
+                                                $filter: {
+                                                    input: '$$answers',
+                                                    cond: { $eq: ['$$this.isCorrect', true] }
+                                                }
+                                            }
+                                        },
+                                        wrongAnswers: {
+                                            $size: {
+                                                $filter: {
+                                                    input: '$$answers',
+                                                    cond: { $eq: ['$$this.isCorrect', false] }
+                                                }
+                                            }
+                                        },
+                                        totalAnswers: { $size: '$$answers' }
+                                    }
+                                }
+                            }
                         ]
                     }
                 }
