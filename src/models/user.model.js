@@ -18,7 +18,7 @@ const userSchema = new mongoose.Schema(
             }
         },
         gender: { type: String, enum: ['Male', 'Female', 'Other'], required: true, default: 'Male' },
-        age: { type: Number, required: true, min: 18, default: 18 },
+        age: { type: Number, required: true, min: 0, default: 18 },
         height: { type: Number, required: true, default: 170 },
         weight: { type: Number, required: true, default: 60 },
         language: { type: String, required: true, default: 'English' },
