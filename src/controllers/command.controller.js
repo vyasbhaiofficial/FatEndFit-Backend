@@ -6,14 +6,15 @@ exports.createCommand = async (req, res) => {
     try {
         const { type, title, description } = req.body;
         const audioUrl = req.file ? req.file.path : undefined;
-        console.log(audioUrl ,"-------------------------------audio");
-        
+        console.log(audioUrl, '-------------------------------audio');
 
         const command = await db.Command.create({
             type,
             title,
             description: type === 'text' ? description : undefined,
-            audioUrl: type === 'audio' ? audioUrl : undefined
+            audioUrl: type === 'audio' ? audioUrl : undefined,
+            createdBy: req.admin?.id || null,
+            createdByRole: req.role || 'admin'
         });
 
         return RESPONSE.success(res, 201, 1001, command);
@@ -25,7 +26,18 @@ exports.createCommand = async (req, res) => {
 // Get All Commands
 exports.getCommands = async (req, res) => {
     try {
-        const commands = await db.Command.find();
+        // Admin sees all; Sub Admin sees own + admin-created
+        let filter = {};
+        if (req.role === 'subadmin') {
+            filter = {
+                $or: [
+                    { createdByRole: 'admin' },
+                    { createdByRole: { $exists: false } }, // legacy treated as admin-created
+                    { createdBy: req.admin?.id }
+                ]
+            };
+        }
+        const commands = await db.Command.find(filter).sort({ createdAt: -1 });
         return RESPONSE.success(res, 200, 1002, commands);
     } catch (err) {
         return RESPONSE.error(res, 500, 9999, err.message);
@@ -42,6 +54,11 @@ exports.updateCommand = async (req, res) => {
         const command = await db.Command.findById(commandId);
         if (!command) {
             return RESPONSE.error(res, 404, 3001, 'Command not found');
+        }
+
+        // authorize: admin OR owning subadmin
+        if (req.role === 'subadmin' && String(command.createdBy) !== String(req.admin?.id)) {
+            return RESPONSE.error(res, 403, 3002, 'Not allowed');
         }
 
         command.type = type || command.type;
@@ -65,6 +82,13 @@ exports.updateCommand = async (req, res) => {
 // Delete Command
 exports.deleteCommand = async (req, res) => {
     try {
+        const command = await db.Command.findById(req.params.id);
+        if (!command) {
+            return RESPONSE.error(res, 404, 3001, 'Command not found');
+        }
+        if (req.role === 'subadmin' && String(command.createdBy) !== String(req.admin?.id)) {
+            return RESPONSE.error(res, 403, 3002, 'Not allowed');
+        }
         await db.Command.findByIdAndDelete(req.params.id);
         return RESPONSE.success(res, 200, 1004, 'Deleted successfully');
     } catch (err) {
