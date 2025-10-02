@@ -30,6 +30,9 @@ const MESSAGES = {
     5003: 'Email already exists',
     5004: 'Admin not Found',
 
+    // sub admin
+    6000: 'Sub admin deleted by admin',
+
     // plan
     6001: 'Plan created successfully',
     6002: 'Plans fetched successfully',
