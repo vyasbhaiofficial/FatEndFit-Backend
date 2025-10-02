@@ -57,6 +57,10 @@ exports.adminLogin = async (req, res) => {
         if (!admin) {
             return RESPONSE.error(res, 401, 1005, 'Invalid email or password');
         }
+        // check deleted
+        if (admin.isDeleted) {
+            return RESPONSE.error(res, 403, 6000);
+        }
         const isMatch = await bcrypt.compare(password, admin.password);
         if (!isMatch) {
             return RESPONSE.error(res, 401, 1005, 'Invalid email or password');
