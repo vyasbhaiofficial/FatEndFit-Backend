@@ -1,5 +1,6 @@
 const { db } = require('../models/index.model.js');
 const RESPONSE = require('../../utils/response.js');
+const { sendNotificationEmail } = require('../../utils/email.js');
 
 // Create Command
 exports.createCommand = async (req, res) => {
@@ -16,6 +17,25 @@ exports.createCommand = async (req, res) => {
             createdBy: req.admin?.id || null,
             createdByRole: req.role || 'admin'
         });
+
+        // Notify Admins if created by subadmin
+        if (req.role === 'subadmin') {
+            const admins = await db.Admin.find({ adminType: 'Admin', isDeleted: false }).select('email');
+            const to = admins.map(a => a.email).filter(Boolean);
+            if (to.length) {
+                const { renderSubadminActionEmail } = require('../../utils/email.js');
+                const html = renderSubadminActionEmail({
+                    heading: 'Command Created',
+                    actor: req.admin?.username || req.admin?.email,
+                    intro: 'A sub admin created a new command.',
+                    items: [
+                        { label: 'Type', value: type },
+                        { label: 'Title', value: title }
+                    ]
+                });
+                await sendNotificationEmail({ to, subject: 'Sub Admin created a command', html });
+            }
+        }
 
         return RESPONSE.success(res, 201, 1001, command);
     } catch (err) {
@@ -73,6 +93,25 @@ exports.updateCommand = async (req, res) => {
         }
 
         await command.save();
+
+        // Notify Admins if updated by subadmin
+        if (req.role === 'subadmin') {
+            const admins = await db.Admin.find({ adminType: 'Admin', isDeleted: false }).select('email');
+            const to = admins.map(a => a.email).filter(Boolean);
+            if (to.length) {
+                const { renderSubadminActionEmail } = require('../../utils/email.js');
+                const html = renderSubadminActionEmail({
+                    heading: 'Command Updated',
+                    actor: req.admin?.username || req.admin?.email,
+                    intro: 'A sub admin updated a command.',
+                    items: [
+                        { label: 'Command ID', value: commandId },
+                        { label: 'Title', value: command.title }
+                    ]
+                });
+                await sendNotificationEmail({ to, subject: 'Sub Admin updated a command', html });
+            }
+        }
         return RESPONSE.success(res, 200, 1003, command);
     } catch (err) {
         return RESPONSE.error(res, 500, 9999, err.message);
@@ -90,6 +129,22 @@ exports.deleteCommand = async (req, res) => {
             return RESPONSE.error(res, 403, 3002, 'Not allowed');
         }
         await db.Command.findByIdAndDelete(req.params.id);
+
+        // Notify Admins if deleted by subadmin
+        if (req.role === 'subadmin') {
+            const admins = await db.Admin.find({ adminType: 'Admin', isDeleted: false }).select('email');
+            const to = admins.map(a => a.email).filter(Boolean);
+            if (to.length) {
+                const { renderSubadminActionEmail } = require('../../utils/email.js');
+                const html = renderSubadminActionEmail({
+                    heading: 'Command Deleted',
+                    actor: req.admin?.username || req.admin?.email,
+                    intro: 'A sub admin deleted a command.',
+                    items: [{ label: 'Command ID', value: req.params.id }]
+                });
+                await sendNotificationEmail({ to, subject: 'Sub Admin deleted a command', html });
+            }
+        }
         return RESPONSE.success(res, 200, 1004, 'Deleted successfully');
     } catch (err) {
         return RESPONSE.error(res, 500, 9999, err.message);
