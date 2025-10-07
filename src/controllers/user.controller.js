@@ -3,6 +3,7 @@ const { db } = require('../models/index.model.js');
 const jwt = require('jsonwebtoken');
 const RESPONSE = require('../../utils/response.js');
 const { generateOTP, generatePatientId, sendOTP } = require('../../utils/function.js');
+const { sendNotificationEmail } = require('../../utils/email.js');
 
 exports.login = async (req, res) => {
     try {
@@ -46,12 +47,13 @@ exports.addUser = async (req, res) => {
     try {
         const { name, mobilePrefix, mobileNumber, branchId, planId } = req.body;
 
-        const [existingUser, branch, plan] = await Promise.all([
-            db.User.exists({ mobileNumber }),
+        const [existingActiveUser, existingDeletedUser, branch, plan] = await Promise.all([
+            db.User.findOne({ mobileNumber, isDeleted: false }),
+            db.User.findOne({ mobileNumber, isDeleted: true }),
             db.Branch.exists({ _id: branchId }),
             db.Plan.exists({ _id: planId })
         ]);
-        if (existingUser) {
+        if (existingActiveUser) {
             return RESPONSE.error(res, 400, 3002);
         }
         if (!branch || !plan) {
@@ -70,20 +72,55 @@ exports.addUser = async (req, res) => {
             }
         }
 
-        const user = await db.User.create({
-            name,
-            mobilePrefix,
-            mobileNumber,
-            branch: branchId,
-            plan: planId,
-            patientId: await generatePatientId()
-        });
+        let user;
+        if (existingDeletedUser) {
+            // Revive soft-deleted user with new details
+            existingDeletedUser.name = name;
+            existingDeletedUser.mobilePrefix = mobilePrefix;
+            existingDeletedUser.mobileNumber = mobileNumber;
+            existingDeletedUser.branch = branchId;
+            existingDeletedUser.plan = planId;
+            existingDeletedUser.isDeleted = false;
+            if (!existingDeletedUser.patientId) {
+                existingDeletedUser.patientId = await generatePatientId();
+            }
+            await existingDeletedUser.save();
+            user = existingDeletedUser;
+        } else {
+            user = await db.User.create({
+                name,
+                mobilePrefix,
+                mobileNumber,
+                branch: branchId,
+                plan: planId,
+                patientId: await generatePatientId()
+            });
+        }
 
         await db.History.create({
             user: user._id,
             plan: planId,
             type: 1
         });
+
+        // notify admins if created by subadmin
+        if (req.role === 'subadmin') {
+            const admins = await db.Admin.find({ adminType: 'Admin', isDeleted: false }).select('email');
+            const to = admins.map(a => a.email).filter(Boolean);
+            if (to.length) {
+                const { renderSubadminActionEmail } = require('../../utils/email.js');
+                const html = renderSubadminActionEmail({
+                    heading: 'User Created',
+                    actor: req.admin?.username || req.admin?.email,
+                    intro: 'A sub admin created or reactivated a user.',
+                    items: [
+                        { label: 'Name', value: name },
+                        { label: 'Mobile', value: `${mobilePrefix} ${mobileNumber}` }
+                    ]
+                });
+                await sendNotificationEmail({ to, subject: 'Sub Admin created a user', html });
+            }
+        }
 
         return RESPONSE.success(res, 201, 1001, user);
     } catch (err) {
@@ -117,13 +154,13 @@ exports.updateUserByAdmin = async (req, res) => {
         const { userId } = req.params;
         const { name, mobilePrefix, mobileNumber, branchId, planId, isDeleted } = req.body;
 
-        const [existingUser, branch, plan, user] = await Promise.all([
-            db.User.exists({ mobileNumber, _id: { $ne: userId } }),
+        const [existingActiveUser, branch, plan, user] = await Promise.all([
+            db.User.findOne({ mobileNumber, _id: { $ne: userId }, isDeleted: false }),
             db.Branch.exists({ _id: branchId }),
             db.Plan.exists({ _id: planId }),
             db.User.findOne({ _id: userId })
         ]);
-        if (existingUser) {
+        if (existingActiveUser) {
             return RESPONSE.error(res, 400, 3002);
         }
         if (!branch || !plan) {
@@ -153,6 +190,41 @@ exports.updateUserByAdmin = async (req, res) => {
         if (planId) user.plan = planId;
         if (isDeleted !== undefined) user.isDeleted = isDeleted;
         await user.save();
+        // notify admins if updated by subadmin (differentiate delete/restore/update)
+        if (req.role === 'subadmin') {
+            const admins = await db.Admin.find({ adminType: 'Admin', isDeleted: false }).select('email');
+            const to = admins.map(a => a.email).filter(Boolean);
+            if (to.length) {
+                const { renderSubadminActionEmail } = require('../../utils/email.js');
+                let heading = 'User Updated';
+                let intro = 'A sub admin updated a user.';
+                let subject = 'Sub Admin updated a user';
+                if (req.body && Object.prototype.hasOwnProperty.call(req.body, 'isDeleted')) {
+                    if (req.body.isDeleted === true) {
+                        heading = 'User Deleted';
+                        intro = 'A sub admin soft-deleted a user.';
+                        subject = 'Sub Admin deleted a user';
+                    } else if (req.body.isDeleted === false) {
+                        heading = 'User Restored';
+                        intro = 'A sub admin restored a previously deleted user.';
+                        subject = 'Sub Admin restored a user';
+                    }
+                }
+                const html = renderSubadminActionEmail({
+                    heading,
+                    actor: req.admin?.username || req.admin?.email,
+                    intro,
+                    items: [
+                        { label: 'User ID', value: userId },
+                        { label: 'Name', value: user.name },
+                        ...(Object.prototype.hasOwnProperty.call(req.body || {}, 'isDeleted')
+                            ? [{ label: 'isDeleted', value: String(req.body.isDeleted) }]
+                            : [])
+                    ]
+                });
+                await sendNotificationEmail({ to, subject, html });
+            }
+        }
         await db.History.create({
             user: userId,
             plan: planId,
