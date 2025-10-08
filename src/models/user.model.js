@@ -4,7 +4,7 @@ const userSchema = new mongoose.Schema(
     {
         name: { type: String, required: true, trim: true, default: 'New User' },
         surname: { type: String, trim: true, default: '' },
-        patientId: { type: Number, required: true, unique: true },
+        patientId: { type: String, required: true, unique: true },
         mobilePrefix: { type: String, required: true, default: '+91' },
         mobileNumber: {
             type: String,
