@@ -2,6 +2,7 @@ const express = require('express');
 const route = express.Router();
 const adminController = require('../../controllers/admin.controller.js');
 const subAdminController = require('../../controllers/subAdmin.controller.js');
+const dashboardRoutes = require('./dashboard.route.js');
 const upload = require('../../../middleware/multer.js');
 
 /**
@@ -386,5 +387,8 @@ route.post('/user/:userId/plan/resume', adminController.adminResumeUserPlan);
  *         description: Server error
  */
 route.get('/user/:userId/plan/status', adminController.getUserPlanStatus);
+
+// Dashboard routes
+route.use('/dashboard', dashboardRoutes);
 
 module.exports = route;

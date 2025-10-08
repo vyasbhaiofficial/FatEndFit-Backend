@@ -82,7 +82,7 @@ exports.addUser = async (req, res) => {
             existingDeletedUser.plan = planId;
             existingDeletedUser.isDeleted = false;
             if (!existingDeletedUser.patientId) {
-                existingDeletedUser.patientId = await generatePatientId();
+                existingDeletedUser.patientId = await generatePatientId(branchId);
             }
             await existingDeletedUser.save();
             user = existingDeletedUser;
@@ -93,7 +93,7 @@ exports.addUser = async (req, res) => {
                 mobileNumber,
                 branch: branchId,
                 plan: planId,
-                patientId: await generatePatientId()
+                patientId: await generatePatientId(branchId)
             });
         }
 
@@ -132,7 +132,7 @@ exports.addUser = async (req, res) => {
 //get All user in admin
 exports.getAllUsers = async (req, res) => {
     try {
-        let filter = { isDeleted: false };
+        let filter = {};
         if (req.role === 'subadmin') {
             const adminDoc = await db.Admin.findById(req.admin?.id).select('branch');
             if (!adminDoc) {

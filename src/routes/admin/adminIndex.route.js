@@ -11,6 +11,7 @@ const settingRoute = require('./setting.route.js');
 const categoryRoute = require('./category.route.js');
 const otherRoute = require('./other.route.js');
 const commandRoute = require('./command.route.js');
+const dashboardRoute = require('./dashboard.route.js');
 
 route.use('/branch', branchRoute);
 route.use('/plan', planRoute);
@@ -21,6 +22,8 @@ route.use('/category', categoryRoute);
 route.use('/setting', settingRoute);
 route.use('/other', otherRoute);
 route.use('/command', commandRoute);
+route.use('/dashboard', dashboardRoute);
 route.use('/', adminRoute);
+
 
 module.exports = route;
