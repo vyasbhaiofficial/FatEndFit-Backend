@@ -4,7 +4,6 @@ const RESPONSE = require('../../utils/response.js');
 // Get dashboard statistics for admin
 exports.getDashboardStats = async (req, res) => {
     try {
-        // Base filter for non-deleted users
         const baseFilter = { isDeleted: false };
 
         // For subadmin, filter by their assigned branches
