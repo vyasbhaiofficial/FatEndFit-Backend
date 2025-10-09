@@ -6,14 +6,28 @@ const dashboardController = require('../../controllers/dashboard.controller.js')
  * @swagger
  * /admin/dashboard/stats:
  *   get:
- *     summary: Get dashboard statistics for admin
- *     tags:
- *       - Dashboard
+ *     summary: Get dashboard statistics with date range
+ *     tags: [Dashboard]
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: startDate
+ *         required: false
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Optional start date (inclusive). Example: 2025-10-01
+ *       - in: query
+ *         name: endDate
+ *         required: false
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Optional end date (inclusive, up to 23:59:59.999). Example: 2025-10-08
  *     responses:
  *       200:
- *         description: Dashboard statistics retrieved successfully
+ *         description: Dashboard statistics with date range
  *         content:
  *           application/json:
  *             schema:
@@ -30,36 +44,19 @@ const dashboardController = require('../../controllers/dashboard.controller.js')
  *                   properties:
  *                     totalUsers:
  *                       type: integer
- *                       example: 150
- *                       description: Total number of users
+ *                       example: 100
  *                     activePlanUsers:
  *                       type: integer
- *                       example: 120
- *                       description: Users with active plans
+ *                       example: 80
  *                     holdPlanUsers:
  *                       type: integer
- *                       example: 15
- *                       description: Users with plans on hold
+ *                       example: 20
  *                     chartData:
  *                       type: array
- *                       items:
- *                         type: object
- *                         properties:
- *                           name:
- *                             type: string
- *                             example: "Active Plans"
- *                           value:
- *                             type: integer
- *                             example: 120
- *                           color:
- *                             type: string
- *                             example: "#10B981"
+ *                       example: [{ name: 'Active Plans', value: 80 }, { name: 'Hold Plans', value: 20 }]
  *                     lastUpdated:
  *                       type: string
- *                       format: date-time
- *                       example: "2025-01-15T12:00:00.000Z"
- *       403:
- *         description: Forbidden - Admin not found
+ *                       example: "2025-10-08T12:00:00.000Z"
  *       500:
  *         description: Server error
  */
