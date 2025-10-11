@@ -7,9 +7,9 @@ const { sendNotificationEmail } = require('../../utils/email.js');
 
 exports.login = async (req, res) => {
     try {
-        const { mobileNumber, fcmToken } = req.body;
+        const { mobilePrefix, mobileNumber, fcmToken } = req.body;
 
-        let user = await db.User.findOne({ mobileNumber });
+        let user = await db.User.findOne({ mobilePrefix, mobileNumber });
         if (!user) {
             return RESPONSE.error(res, 404, 3001);
         }

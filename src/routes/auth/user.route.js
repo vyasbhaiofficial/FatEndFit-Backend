@@ -16,8 +16,13 @@ const userController = require('../../controllers/user.controller.js');
  *           schema:
  *             type: object
  *             required:
+ *               - mobilePrefix
  *               - mobileNumber
  *             properties:
+ *               mobilePrefix:
+ *                 type: string
+ *                 example: "+91"
+ *                 description: Mobile country code prefix
  *               mobileNumber:
  *                 type: string
  *                 example: "9876543210"
@@ -49,7 +54,10 @@ const userController = require('../../controllers/user.controller.js');
  *                     OTP:
  *                       type: string
  *                       example: "1234"
- *                     token:
+ *                     accessToken:
+ *                       type: string
+ *                       example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ..."
+ *                     refreshToken:
  *                       type: string
  *                       example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ..."
  *       404:
