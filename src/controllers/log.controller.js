@@ -118,6 +118,7 @@ exports.getLogs = async (req, res) => {
             }
         }
 
+        
         // Get logs with pagination
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 50;
