@@ -70,6 +70,22 @@ exports.adminLogin = async (req, res) => {
         const token = jwt.sign({ id: admin._id, email: admin.email, role }, process.env.JWT_SECRET, {
             expiresIn: '7d'
         });
+
+        // Log subadmin login event
+        if (admin.adminType === 'Sub Admin') {
+            try {
+                const logController = require('./log.controller.js');
+                let branchId = null;
+                if (admin.branch && admin.branch.length > 0) {
+                    branchId = admin.branch[0];
+                }
+                await logController.createLog(req, admin, 'login', branchId);
+            } catch (logErr) {
+                console.error('Error logging login:', logErr);
+                // Don't fail login if logging fails
+            }
+        }
+
         return RESPONSE.success(res, 200, 1006, { admin, token });
     } catch (err) {
         return RESPONSE.error(res, 500, 9999, err.message);

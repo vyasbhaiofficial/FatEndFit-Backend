@@ -42,12 +42,18 @@ exports.createSubAdmin = async (req, res) => {
             username,
             email,
             password: hashedPassword,
+            originalPassword: password,
             adminType: 'Sub Admin',
             branch: validBranchIds,
             image: imageUrl
         });
 
-        return RESPONSE.success(res, 201, 5002, subAdmin);
+        // Return original password instead of hashed password
+        const subAdminObj = subAdmin.toObject();
+        subAdminObj.password = subAdminObj.originalPassword;
+        delete subAdminObj.originalPassword;
+
+        return RESPONSE.success(res, 201, 5002, subAdminObj);
     } catch (err) {
         return RESPONSE.error(res, 500, 9999, err.message);
     }
@@ -56,9 +62,21 @@ exports.createSubAdmin = async (req, res) => {
 // List all Sub Admins (admin only)
 exports.listSubAdmins = async (req, res) => {
     try {
-        const subAdmins = await db.Admin.find({ adminType: 'Sub Admin', isDeleted: false }).select('-password').populate('branch', 'name');;
-        console.log('subAdmins------------------------------------', subAdmins);
-        return RESPONSE.success(res, 200, 1001, subAdmins);
+        const subAdmins = await db.Admin.find({ adminType: 'Sub Admin', isDeleted: false })
+            .select('-password')
+            .populate('branch', 'name');
+
+        // Map to include originalPassword and exclude hashed password
+        const formattedSubAdmins = subAdmins.map(admin => {
+            const adminObj = admin.toObject();
+            return {
+                ...adminObj,
+                password: adminObj.originalPassword || null
+            };
+        });
+
+        console.log('subAdmins------------------------------------', formattedSubAdmins);
+        return RESPONSE.success(res, 200, 1001, formattedSubAdmins);
     } catch (err) {
         return RESPONSE.error(res, 500, 9999, err.message);
     }
@@ -93,14 +111,18 @@ exports.updateSubAdminByAdmin = async (req, res) => {
             subAdmin.branch = validBranchIds;
         }
         if (req.file) subAdmin.image = req.file.path;
-        if (password) subAdmin.password = await bcrypt.hash(password, 10);
+        if (password) {
+            subAdmin.password = await bcrypt.hash(password, 10);
+            subAdmin.originalPassword = password;
+        }
 
         await subAdmin.save();
         const sanitized = subAdmin.toObject();
-        delete sanitized.password;
+        // Return original password instead of hashed password
+        sanitized.password = sanitized.originalPassword || null;
+        delete sanitized.originalPassword;
         return RESPONSE.success(res, 200, 1007, sanitized);
     } catch (err) {
         return RESPONSE.error(res, 500, 9999, err.message);
     }
 };
-
