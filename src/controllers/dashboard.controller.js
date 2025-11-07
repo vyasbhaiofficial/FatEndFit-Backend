@@ -16,7 +16,6 @@ exports.getDashboardStats = async (req, res) => {
             scopedFilter = { ...baseFilter, branch: { $in: allowedBranchIds } };
         }
 
-        
         // Date window
         const { startDate, endDate } = req.query || {};
         let start = null,
@@ -68,12 +67,17 @@ exports.getDashboardStats = async (req, res) => {
             ...between('planHoldDate')
         };
 
-        // Build user match filter for aggregation (only filter by isDeleted and branch)
-        // Don't filter by date or active status - we want ALL users who have taken plan at least once
+        // Build user match filter for aggregation (filter by isDeleted, branch, and date)
         // After $unwind, user fields are nested under 'user' key
         const userMatchFilter = { 'user.isDeleted': false };
         if (req.role === 'subadmin' && adminDoc && adminDoc.branch && adminDoc.branch.length > 0) {
             userMatchFilter['user.branch'] = { $in: adminDoc.branch };
+        }
+        // Add date filter similar to totalUsers (filter by user's createdAt date)
+        if (start || end) {
+            userMatchFilter['user.createdAt'] = {};
+            if (start) userMatchFilter['user.createdAt'].$gte = start;
+            if (end) userMatchFilter['user.createdAt'].$lte = end;
         }
 
         // Count users with only one plan (exactly 1 history entry with type: 1)
