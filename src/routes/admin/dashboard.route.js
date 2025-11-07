@@ -51,6 +51,14 @@ const dashboardController = require('../../controllers/dashboard.controller.js')
  *                     holdPlanUsers:
  *                       type: integer
  *                       example: 20
+ *                     usersWithOnePlan:
+ *                       type: integer
+ *                       example: 50
+ *                       description: Count of users who have only one plan assigned
+ *                     usersWithUpgradedPlan:
+ *                       type: integer
+ *                       example: 30
+ *                       description: Count of users who have upgraded their plan (more than one plan in history)
  *                     chartData:
  *                       type: array
  *                       example: [{ name: 'Active Plans', value: 80 }, { name: 'Hold Plans', value: 20 }]

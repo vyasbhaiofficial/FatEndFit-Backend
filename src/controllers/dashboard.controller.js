@@ -8,13 +8,15 @@ exports.getDashboardStats = async (req, res) => {
 
         // Subadmin branch scoping
         let scopedFilter = baseFilter;
+        let adminDoc = null;
         if (req.role === 'subadmin') {
-            const adminDoc = await db.Admin.findById(req.admin?.id).select('branch');
+            adminDoc = await db.Admin.findById(req.admin?.id).select('branch');
             if (!adminDoc) return RESPONSE.error(res, 403, 2003, 'Admin not found');
             const allowedBranchIds = adminDoc.branch || [];
             scopedFilter = { ...baseFilter, branch: { $in: allowedBranchIds } };
         }
 
+        
         // Date window
         const { startDate, endDate } = req.query || {};
         let start = null,
@@ -66,6 +68,64 @@ exports.getDashboardStats = async (req, res) => {
             ...between('planHoldDate')
         };
 
+        // Build user match filter for aggregation (only filter by isDeleted and branch)
+        // Don't filter by date or active status - we want ALL users who have taken plan at least once
+        // After $unwind, user fields are nested under 'user' key
+        const userMatchFilter = { 'user.isDeleted': false };
+        if (req.role === 'subadmin' && adminDoc && adminDoc.branch && adminDoc.branch.length > 0) {
+            userMatchFilter['user.branch'] = { $in: adminDoc.branch };
+        }
+
+        // Count users with only one plan (exactly 1 history entry with type: 1)
+        // These are users who took plan only ONE TIME - count ALL plans, not just active
+        const usersWithOnePlanAggregation = await db.History.aggregate([
+            { $match: { type: 1 } },
+            {
+                $group: {
+                    _id: '$user',
+                    planCount: { $sum: 1 }
+                }
+            },
+            { $match: { planCount: 1 } },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: '_id',
+                    foreignField: '_id',
+                    as: 'user'
+                }
+            },
+            { $unwind: { path: '$user', preserveNullAndEmptyArrays: false } },
+            { $match: userMatchFilter }
+        ]);
+
+        const usersWithOnePlanCount = usersWithOnePlanAggregation.length;
+
+        // Count users who upgraded their plan (more than 1 history entry with type: 1)
+        // These are users who took plan once and then took plan again (upgraded) - count ALL plans
+        const usersWithUpgradedPlanAggregation = await db.History.aggregate([
+            { $match: { type: 1 } },
+            {
+                $group: {
+                    _id: '$user',
+                    planCount: { $sum: 1 }
+                }
+            },
+            { $match: { planCount: { $gt: 1 } } },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: '_id',
+                    foreignField: '_id',
+                    as: 'user'
+                }
+            },
+            { $unwind: { path: '$user', preserveNullAndEmptyArrays: false } },
+            { $match: userMatchFilter }
+        ]);
+
+        const usersWithUpgradedPlanCount = usersWithUpgradedPlanAggregation.length;
+
         const [totalUsers, activePlanUsers, holdPlanUsers] = await Promise.all([
             db.User.countDocuments(totalUsersQuery),
             db.User.countDocuments(activePlanUsersQuery),
@@ -81,6 +141,8 @@ exports.getDashboardStats = async (req, res) => {
             totalUsers,
             activePlanUsers,
             holdPlanUsers,
+            usersWithOnePlan: usersWithOnePlanCount,
+            usersWithUpgradedPlan: usersWithUpgradedPlanCount,
             chartData,
             lastUpdated: new Date().toISOString()
         });
