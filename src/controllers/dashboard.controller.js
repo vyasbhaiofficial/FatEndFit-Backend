@@ -16,6 +16,7 @@ exports.getDashboardStats = async (req, res) => {
             scopedFilter = { ...baseFilter, branch: { $in: allowedBranchIds } };
         }
 
+        
         // Date window
         const { startDate, endDate } = req.query || {};
         let start = null,
